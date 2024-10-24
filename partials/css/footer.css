@@ -1,0 +1,36 @@
+.footer {
+    width: 1500px;
+    margin-top: 30px;
+    background: radial-gradient(circle, #CC9600 0%, #000000  30%);
+    color: white;
+    display: flex;
+    padding: 15px 10%;
+    align-items: center;
+    box-shadow: 0 0 10px #bbb;
+}
+
+
+.right {
+    margin-left: auto;
+    margin-right: 0;
+    display: flex;
+}
+
+.linkbar {
+    display: flex;
+}
+.linkbar>li {
+    margin: 7px 0;
+}
+
+.linkbar>li>a {
+    margin: 0 0 0 50px;
+    font-size: 14px;
+    font-weight: 300;
+}
+
+.info {
+    margin-left: 70px;
+    font-size: 14px;
+    font-weight: 300;
+}

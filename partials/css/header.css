@@ -1,0 +1,54 @@
+.header {
+    display: flex;
+    background: url('/media/input/header.png');
+    box-shadow: 0 0 10px #bbb;
+    justify-content: space-around;
+    height: 90px;
+}
+
+.banner {
+    margin-left: 20px;
+    padding: 0 30px !important;
+    font-size: 14px;
+    background-color: rgba(0, 0, 0, 0); 
+    color: #CC9600;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    transition: 0.4s;
+}
+
+.banner:hover {
+    color:rgb(240, 240, 240);
+}
+
+.rightbar {
+    display: flex;
+    margin-left: auto;
+    margin-right: 0em;
+}
+
+.navbar {
+    display: flex;
+    overflow: hidden;
+    padding: 0 0;
+    line-height: normal;
+}
+/* Ссылки в панели навигации */
+.navbar a {
+    margin-right: 20px;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background-color: rgba(0, 0, 0, 0); 
+    color: rgb(240, 240, 240);
+    text-align: center;
+    padding: 40px 30px;
+    text-decoration: none;
+    width: 135px;
+    transition: 0.4s;
+}
+
+.navbar a:hover {
+    color:#CC9600;
+}
