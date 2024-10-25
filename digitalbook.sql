@@ -37,6 +37,12 @@ CREATE TABLE if not exists book (
     foreign key (genreId) references genres (id) on delete cascade
 ) engine=MyISAM DEFAULT CHARSET=latin1;
 
+CREATE TABLE favorites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    book_id INT 
+);
+
 
 CREATE TABLE `digitalbook`.`transactions` (
   `id` INT NOT NULL,

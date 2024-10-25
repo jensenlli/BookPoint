@@ -26,115 +26,65 @@ $limit = 10;
                         <li>Жанры
                             <ul>
                                 <?php
-                                if (isset($_GET['authors'])) {
-                                    $authortogenre = "";
-                                    foreach ($_GET['authors'] as $n => $row) {
-                                        $authortogenre .= $row;
-                                        if ($n < count($_GET['authors']) - 1) {
-                                            $authortogenre .= ", ";
-                                        }
-                                    }
-                                    $sqlgenres = "  SELECT    g.name as name,
-                                                                g.id as id
-                                                        FROM genre as g
-                                                        WHERE g.id in (
-                                                            SELECT b.genreId
-                                                            FROM book as b
-                                                            WHERE b.authorId in (" . $authortogenre . ")
-                                                        )";
-                                } else {
-                                    $sqlgenres = "SELECT * FROM genre WHERE flag = 1 ORDER BY name";
-                                }
+                                // Получение жанров
+                                $sqlgenres = "SELECT * FROM genre WHERE flag = 1 ORDER BY name";
                                 $res = $conn->query($sqlgenres);
                                 if (!$res) echo mysqli_error($conn);
+
                                 while ($data = mysqli_fetch_assoc($res)) {
                                 ?>
-                                    <li><input type="checkbox" name="genres[]" value="<?php echo $data['id']; ?>" id="genre-<?php echo $data['id']; ?>" <?php if (isset($_GET['genres'])) {
-                                                                                                                                                            if (in_array($data['id'], $_GET['genres'])) echo "checked";
-                                                                                                                                                        } ?>><label for="genre-<?php echo $data['id']; ?>"><?php echo $data['name'] ?></label></li>
-                                <?php } ?>
-                            </ul>
-                        </li>
-                        <li>Автор
-                            <ul>
-                                <?php
-                                if (isset($_GET['genres'])) {
-                                    $genretoauthor = "";
-                                    foreach ($_GET['genres'] as $n => $row) {
-                                        $genretoauthor .= $row;
-                                        if ($n < count($_GET['genres']) - 1) {
-                                            $genretoauthor .= ", ";
-                                        }
-                                    }
-                                    $sqlauthors = "SELECT a.name as name, 
-                                                              a.id as id 
-                                                       FROM author as a 
-                                                       where a.id in (
-                                                           select b.authorId 
-                                                           from book as b 
-                                                           where b.genreId in (" . $genretoauthor . ")
-                                                        )";
-                                } else {
-                                    $sqlauthors = "SELECT * FROM author WHERE flag = 1 ORDER BY name";
-                                }
-                                $res = $conn->query($sqlauthors);
-                                if (!$res) echo mysqli_error($conn);
-                                while ($data = mysqli_fetch_assoc($res)) {
-                                ?>
-                                    <li><input type="checkbox" name="authors[]" value="<?php echo $data['id']; ?>" id="author-<?php echo $data['id'] ?>" <?php if (isset($_GET['authors'])) {
-                                                                                                                                                                if (in_array($data['id'], $_GET['authors'])) echo "checked";
-                                                                                                                                                            }
-                                                                                                                                                            ?>><label for="author-<?php echo $data['id']; ?>"><?php echo $data['name']; ?></label></li>
+                                    <li>
+                                        <input type="checkbox" name="genres[]" value="<?php echo $data['id']; ?>" id="genre-<?php echo $data['id']; ?>" <?php if (isset($_GET['genres']) && in_array($data['id'], $_GET['genres'])) echo "checked"; ?>>
+                                        <label for="genre-<?php echo $data['id']; ?>"><?php echo $data['name'] ?></label>
+                                    </li>
                                 <?php } ?>
                             </ul>
                         </li>
                     </ul>
                     <input type="submit" value="Filter!" name="filter" class="filterbutton">
                 </form>
+
                 <?php
                 function addFilterCondition($where, $add, $and = true)
                 {
                     if ($where) {
                         if ($and) $where .= " AND $add";
                         else $where .= " OR $add";
-                    } else $where = $add;
+                    } else {
+                        $where = $add;
+                    }
                     return $where;
                 }
 
+                $where = "";
                 if (!empty($_GET["filter"])) {
-                    $where = "";
-                    if ($_GET["genres"]) {
+                    // Фильтрация по жанрам
+                    if (!empty($_GET["genres"])) {
                         $idsgenres = $_GET["genres"];
-                        $genrestring = "";
-                        foreach ($idsgenres as $n => $row) {
-                            $genrestring .= $row;
-                            if ($n < count($idsgenres) - 1) {
-                                $genrestring .= ", ";
-                            }
-                        }
+                        $genrestring = implode(", ", array_map('intval', $idsgenres)); // Приводим к целым числам
                         $where = addFilterCondition($where, 'g.id IN (' . $genrestring . ')');
                     }
-                    if ($_GET["authors"]) {
+
+                    // Фильтрация по авторам
+                    if (!empty($_GET["authors"])) {
                         $idauthors = $_GET["authors"];
-                        $authorstring = "";
-                        foreach ($idauthors as $n => $row) {
-                            $authorstring .= $row;
-                            if ($n < count($idauthors) - 1) {
-                                $authorstring .= ", ";
-                            }
-                        }
+                        $authorstring = implode(", ", array_map('intval', $idauthors)); // Приводим к целым числам
                         $where = addFilterCondition($where, 'a.id IN (' . $authorstring . ')');
                     }
                 }
-                $sql = 'SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img FROM (
-                            SELECT id, name, genreId, authorId, img
-                            FROM book WHERE flag = 1
-                        ) AS b
-                        LEFT JOIN author AS a ON b.authorId = a.id
-                        LEFT JOIN genre AS g ON b.genreId = g.id';
 
-                if ($where) $sql .= " WHERE $where";
+                // Основной SQL-запрос
+                $sql = 'SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img FROM book AS b
+                                        LEFT JOIN author AS a ON b.authorId = a.id
+                                        LEFT JOIN genre AS g ON b.genreId = g.id
+                                        WHERE b.flag = 1';
+
+                if ($where) {
+                    $sql .= " AND $where"; // Добавляем условия фильтрации
+                }
+
                 $res = $conn->query($sql);
+                if (!$res) echo mysqli_error($conn);
                 $result = array();
                 ?>
             </div>
@@ -143,10 +93,12 @@ $limit = 10;
 
                 <div class="wrap2">
                     <div class="search">
-                        <input type="text" class="searchTerm" placeholder="Поиск...">
-                        <button type="submit" class="searchButton">
-                            <i class="fa fa-search"></i>
-                        </button>
+                        <form method="GET" action="" style="width: 600px;">
+                            <input type="text" name="searchTerm" class="searchTerm" placeholder="Поиск..." value="<?php echo isset($_GET['searchTerm']) ? htmlspecialchars($_GET['searchTerm']) : ''; ?>">
+                            <button type="submit" class="searchButton">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
 
@@ -155,27 +107,49 @@ $limit = 10;
                 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                 $offset = ($page - 1) * $limit;
 
+                // Получение значения поиска из параметров URL
+                $searchTerm = isset($_GET['searchTerm']) ? $_GET['searchTerm'] : '';
+
+                // Подготовка условий для поиска и фильтрации
+                $searchCondition = 'WHERE b.flag = 1';
+                if (!empty($searchTerm)) {
+                    $searchTerm = $conn->real_escape_string($searchTerm); // Экранирование для защиты от SQL-инъекций
+                    $searchCondition .= " AND (b.name LIKE '%$searchTerm%' OR a.name LIKE '%$searchTerm%')";
+                }
+
+                // Фильтрация по жанрам
+                $where = "";
+                if (!empty($_GET["genres"])) {
+                    $idsgenres = $_GET["genres"];
+                    $genrestring = implode(", ", array_map('intval', $idsgenres)); // Приводим к целым числам
+                    $where = addFilterCondition($where, 'g.id IN (' . $genrestring . ')');
+                }
+
+                // Объединяем условия поиска и фильтрации
+                if ($where) {
+                    $searchCondition .= " AND $where";
+                }
+
                 // Получение общего количества записей
-                $countQuery = "SELECT COUNT(*) as total FROM book";
+                $countQuery = "SELECT COUNT(*) as total FROM book AS b 
+                LEFT JOIN author AS a ON b.authorId = a.id 
+                LEFT JOIN genre AS g ON b.genreId = g.id $searchCondition";
                 $countResult = $conn->query($countQuery);
                 $totalCount = $countResult->fetch_assoc()['total'];
                 $totalPages = ceil($totalCount / $limit);
 
                 // Запрос с ограничением по количеству записей
-                $sql = 'SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img FROM (
-                            SELECT id, name, genreId, authorId, img
-                            FROM book WHERE flag = 1
-                        ) AS b
-                        LEFT JOIN author AS a ON b.authorId = a.id
-                        LEFT JOIN genre AS g ON b.genreId = g.id
-                        LIMIT ' . intval($offset) . ', ' . intval($limit);
+                $sql = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img FROM book AS b
+        LEFT JOIN author AS a ON b.authorId = a.id
+        LEFT JOIN genre AS g ON b.genreId = g.id
+        $searchCondition
+        LIMIT " . intval($offset) . ", " . intval($limit);
 
                 $res = $conn->query($sql);
 
                 if ($res->num_rows > 0) {
                     while ($data = mysqli_fetch_assoc($res)) {
                         array_push($result, $data);
-
                 ?>
                         <div class="container-book">
                             <div class="bookimage">
@@ -186,6 +160,10 @@ $limit = 10;
                                 <p>Genre: <?php echo $data['genrename'] ?></p>
                                 <p>Author: <?php echo $data['authorname'] ?></p>
                                 <br>
+                                <form action="add_to_favorites.php" method="POST">
+                                    <input type="hidden" name="book_id" value="<?php echo $data['bookid']; ?>">
+                                    <button type="submit" class="favoritebutton">Добавить в избранное</button>
+                                </form>
                             </div>
                         </div>
                     <?php
@@ -201,10 +179,10 @@ $limit = 10;
                     if ($i == $page) {
                         echo '<strong>' . $i . '</strong> '; // Текущая страница
                     } else {
-                        echo '<a href="?page=' . $i . '">' . $i . '</a> '; // Ссылка на другую страницу
+                        echo '<a class="pagestr" href="?page=' . $i . '">' . $i . '</a> '; // Ссылка на другую страницу
                     }
                 }
-                echo '</div>'; 
+                echo '</div>';
                 ?>
             </div>
         </div>

@@ -14,6 +14,8 @@
   
   .imgreg{
     position: flex;
+    width: min-content;
+    height: 800px;
   }
   
   .btn-primary{
@@ -79,4 +81,9 @@
     margin-left: 200px;
     margin-top: 150px;
     margin-right: auto;
+  }
+
+  .msg_null{
+    font-size: 14px !important;
+    padding-top: 30px;
   }
