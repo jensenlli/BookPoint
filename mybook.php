@@ -32,7 +32,7 @@ $userId = $_SESSION['user']['id'];
                 <p class="allbooks">Мои любимые книги здесь</p>
 
                 <?php
-                $sql = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img 
+                $sql = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, ROUND(b.rating, 2) AS rating_2 
                 FROM favorites f 
                 JOIN book b ON f.book_id = b.id 
                 LEFT JOIN author a ON b.authorId = a.id 
@@ -57,6 +57,7 @@ $userId = $_SESSION['user']['id'];
                                 <h4><?php echo $data['bookname'] ?></h4>
                                 <p>Genre: <?php echo $data['genrename'] ?></p>
                                 <p>Author: <?php echo $data['authorname'] ?></p>
+                                <p>Raiting: <?php echo $data['rating_2'] ?></p>
                                 <br>
                                 <form action="remove_to_favorites.php" method="POST">
                                     <input type="hidden" name="book_id" value="<?php echo $data['bookid']; ?>">
@@ -99,11 +100,10 @@ function closeModal() {
 
 // Проверка параметра URL для показа модального окна
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.has('auth_required')) {
+if (!(urlParams.has('auth_required'))) {
     showModal();
 }
 </script>
-
     <script src="https://kit.fontawesome.com/a9f6196afa.js" crossorigin="anonymous"></script>
 </body>
 

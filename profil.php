@@ -37,6 +37,8 @@
                 <p class="zag2"><?=$_SESSION['user']['email']?></p>
                 <ol> </ol>
                 <ol> </ol>
+                <a class="w-80 btn btn-lg btn-primary" type="submit"  href="red_profile.php">Редактировать профиль</a>
+                <ol> </ol>
                 <a class="w-80 btn btn-lg btn-primary" type="submit"  href="logout.php">Выйти из аккаунта</a>
 
                 </form>

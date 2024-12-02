@@ -74,7 +74,7 @@ $limit = 10;
                 }
 
                 // Основной SQL-запрос
-                $sql = 'SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img FROM book AS b
+                $sql = 'SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, b.rating FROM book AS b
                                         LEFT JOIN author AS a ON b.authorId = a.id
                                         LEFT JOIN genre AS g ON b.genreId = g.id
                                         WHERE b.flag = 1';
@@ -139,7 +139,7 @@ $limit = 10;
                 $totalPages = ceil($totalCount / $limit);
 
                 // Запрос с ограничением по количеству записей
-                $sql = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img FROM book AS b
+                $sql = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, ROUND(b.rating, 2) AS rating_2 FROM book AS b
         LEFT JOIN author AS a ON b.authorId = a.id
         LEFT JOIN genre AS g ON b.genreId = g.id
         $searchCondition
@@ -159,6 +159,7 @@ $limit = 10;
                                 <h4><?php echo $data['bookname'] ?></h4>
                                 <p>Genre: <?php echo $data['genrename'] ?></p>
                                 <p>Author: <?php echo $data['authorname'] ?></p>
+                                <p>Rating: <?php echo $data['rating_2'] ?></p>
                                 <br>
                                 <form action="add_to_favorites.php" method="POST">
                                     <input type="hidden" name="book_id" value="<?php echo $data['bookid']; ?>">

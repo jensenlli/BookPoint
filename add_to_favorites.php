@@ -3,9 +3,9 @@ session_start(); // Стартуем сессию
 include('config/dbConnect.php');
 
 // Проверяем, авторизован ли пользователь
-if (!isset($_SESSION['user']['id'])) {
+if (isset($_SESSION['user']['id'])) {
     echo "Пользователь авторизован";
-}
+
  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bookId = (int)$_POST['book_id']; // Получаем ID книги из формы
@@ -22,5 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo 'Не удалось добавить книгу в избранное: ' . $stmt->error;
     }   
 }
-header("Location: mybook.php?auth_required=true");
+}
+
+//сессия
+if (isset($_SESSION['user']['id'])) {
+    header("Location: mybook.php?auth_required");
+}
+else{
+    header("Location: mybook.php");
+}
 ?>
