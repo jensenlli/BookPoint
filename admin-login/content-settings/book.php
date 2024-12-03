@@ -154,9 +154,9 @@ if (empty($email_address)) {
                     <div class="hheader">
                         <?php
                         if (empty($_GET['edit'])) {
-                            echo "<h4 style='margin-left: 480px;'>Добавление книги</h4>";
+                            echo "<h4 style='margin-left: 625px;'>Добавление книги</h4>";
                         } else {
-                            echo "<h4 style='margin-left: 460px;'>Редактирование книги</h4>";
+                            echo "<h4 style='margin-left: 600px;'>Редактирование книги</h4>";
                         }
                         ?>
                         <a href="book.php"><button class="right">Перейти к обзору книг</button></a>

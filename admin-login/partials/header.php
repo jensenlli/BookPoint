@@ -116,7 +116,7 @@
             <div class="dropdown">
                 <button class="button dropbtn" style="width: 210px;">Администратор</button>
                 <div class="dropdown-content">
-                    <a href="../index.php"><i class='fas fa-sign-out-alt'></i>Выйти</a>
+                    <a href="/index.php"><i class='fas fa-sign-out-alt'></i>Выйти</a>
                 </div>
             </div>
         </div>
