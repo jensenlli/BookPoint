@@ -20,7 +20,7 @@ include('config/dbConnect.php');
     <div class="rightbar">
         <div class="navbar">
             <a class="button" href="/index.php">Каталог</a>
-            <a class="button" href="/mybook.php" style = 'width: 180px';>Моя библиотека</a>
+            <a class="button" href="/redict.php" style = 'width: 180px';>Моя библиотека</a>
             <p class='userakk'>
                 <?php
                     if ($_SESSION['user']['full_name'] <> NULL){

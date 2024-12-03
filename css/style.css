@@ -202,7 +202,7 @@ h4 {
     position: absolute;
     }
 
-    .favoritebutton, .closemodal{
+    .favoritebutton, .closemodal, .readbutton{
         background-color: #CC9600;
         display: block;
         margin: 20px auto;
@@ -221,7 +221,7 @@ h4 {
         cursor: pointer;
         background-color: white;
     }
-    .favoritebutton{
+    .favoritebutton, .readbutton{
         position: absolute;
     }
 
@@ -237,4 +237,48 @@ h4 {
         height: 300px;
         padding-top: 50px;
         padding-left: 50px;
+    }
+
+    .card-img-top{
+        padding-left: 100px;
+    }
+    
+    .card-title {
+        font-size: 30px;
+        color: #CC9600;
+        padding-bottom: 20px;
+    }
+    
+    p strong {
+        font-weight: bold;
+    }
+    p{
+        padding-bottom: 12px;
+    }
+    .card-body{
+        position: absolute;
+        left: 500px;
+        top: 120px;
+        right: 50px; 
+    }
+
+    .nav_page{
+        color:#CC9600;
+        padding-bottom: 50px;
+    }
+    .inputpages{
+        border-bottom-width: 10px;
+        margin-bottom: 10px; 
+        padding: .5rem 1rem;
+        font-size: 15px; 
+        border-radius: .3rem;
+        width: 245px;
+    }
+    .inputpagesbtn{
+        color: #ffffff;
+        background-color: #CC9600;
+        border-color: #CC9600;
+        padding: .5rem 1rem;
+        font-size: 15px;
+        border-radius: .3rem;
     }

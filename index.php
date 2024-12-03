@@ -145,16 +145,24 @@ $limit = 10;
         $searchCondition
         LIMIT " . intval($offset) . ", " . intval($limit);
 
+                if (isset($_GET['id'])) {
+                    header("Location: thisbook.php?id=" . intval($_GET['id']));
+                    exit;
+                }
+
                 $res = $conn->query($sql);
 
                 if ($res->num_rows > 0) {
                     while ($data = mysqli_fetch_assoc($res)) {
                         array_push($result, $data);
                 ?>
+                        
                         <div class="container-book">
-                            <div class="bookimage">
+                            <a href = "thisbook.php?id=<?php echo $data['bookid']; ?>">
+                            <div class="bookimage" style ="min-height: 280px;">
                                 <img src=<?php echo htmlspecialchars($data['img']); ?> alt="bookimage">
                             </div>
+                            </a>
                             <div class="information">
                                 <h4><?php echo $data['bookname'] ?></h4>
                                 <p>Genre: <?php echo $data['genrename'] ?></p>
@@ -164,6 +172,11 @@ $limit = 10;
                                 <form action="add_to_favorites.php" method="POST">
                                     <input type="hidden" name="book_id" value="<?php echo $data['bookid']; ?>">
                                     <button type="submit" class="favoritebutton">Добавить в избранное</button>
+                                </form>
+                                <br><br><br>
+                                <form action="thisbook.php" method="GET">
+                                    <input type="hidden" name="id" value="<?php echo $data['bookid']; ?>">
+                                    <button type="submit" class="readbutton">Читать</button>
                                 </form>
                             </div>
                         </div>
