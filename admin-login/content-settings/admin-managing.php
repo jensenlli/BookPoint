@@ -39,7 +39,7 @@
                             $lastName = $editData['lastName'];
                             $password = $editData['password'];
                             $email = $editData['email'];
-                            $gender = $editData['gender'];
+                            $username = $editData['username'];
 
                             $idAttr = "updateAdminForm";
                         } else {
@@ -47,7 +47,7 @@
                             $lastName = "";
                             $password = "";
                             $email = "";
-                            $gender = "";
+                            $username = "";
 
                             $editId = "";
                             $idAttr = "adminForm";
@@ -58,28 +58,27 @@
                 <?php
                     if (isset($_POST['save'])) {
                         if (empty($_GET['edit'])) {
-                            $sql = "INSERT INTO admins (password,email,gender,firstName,lastName) VALUES (?,?,?,?,?)";
+                            $sql = "INSERT INTO admins (password,email,firstName,lastName,username) VALUES (?,?,?,?,?)";
                             $stmt = mysqli_prepare($conn, $sql);
-                            mysqli_stmt_bind_param($stmt, "sssss", $_POST['password'], $_POST['email'], $_POST['gender'], $_POST['firstName'], $_POST['lastName']);
+                            mysqli_stmt_bind_param($stmt, "sssss", $_POST['password'], $_POST['email'], $_POST['firstName'], $_POST['lastName'], $_POST['username']);
                             mysqli_stmt_execute($stmt);
                         } else {
-                            $sql = "UPDATE admins SET password=?, email=?, gender=?, firstName=?, lastName=? WHERE id=".$_GET['edit'];
+                            $sql = "UPDATE admins SET password=?, email=?, firstName=?, lastName=?, username=? WHERE id=".$_GET['edit'];
                             $stmt = mysqli_prepare($conn, $sql);
-                            mysqli_stmt_bind_param($stmt, "sssss", $_POST['password'], $_POST['email'], $_POST['gender'], $_POST['firstName'], $_POST['lastName']);
+                            mysqli_stmt_bind_param($stmt, "sssss", $_POST['password'], $_POST['email'], $_POST['firstName'], $_POST['lastName'], $_POST['username']);
                             mysqli_stmt_execute($stmt);
-                            echo $_POST['gender'];
                         }
                     }
                 ?>
                 <div class="hheader">
                     <?php
                         if (empty($_GET['edit'])) {
-                            echo "<h4 class='adding-admin'>Adding Admin</h4>";
+                            echo "<h4 class='adding-admin' style='margin-left: 420px;'>Добавление администратора</h4>";
                         } else {
-                            echo "<h4 class='editing-admin'>Editing Admin</h4>";
+                            echo "<h4 class='editing-admin' style='margin-left: 350px;'>Редактировать данные администратора</h4>";
                         }
                     ?>
-                    <a href="admin-managing.php"><button class="right">Go to Admin Overview</button></a>
+                    <a href="admin-managing.php"><button class="right">Вернуться к администраторам</button></a>
                 </div>
                 <div class="view">
                     <form id="<?php echo $idAttr; ?>" rel="<?php echo $editId; ?>" name="admin_profile" method="POST">
@@ -90,23 +89,8 @@
                             <div class="containr">
                                 <input type="text" placeholder="Last Name" name="lastName" value="<?php echo $lastName; ?>" required>
                             </div>
-                        </div>
-                        <div class="row">
                             <div class="containr">
-                                <input type="text" placeholder="E-mail" name="email" value="<?php echo $email ?>" required>
-                            </div>
-                            <div class="containr">
-                                <div class="gender">
-                                    <div class="select">
-                                        <span>Male</span>
-                                        <i class="fa fa-chevron-left"></i>
-                                    </div>
-                                    <input type="hidden" name="gender" value="male">
-                                    <ul class="dropdown-menu">
-                                        <li id="male">М</li>
-                                        <li id="female">Ж</li>
-                                    </ul>
-                                </div>
+                                <input type="text" placeholder="Username" name="username" value="<?php echo $username; ?>" required>
                             </div>
                         </div>
                         <div class="row">
@@ -118,7 +102,7 @@
                             </div>
                         </div>
                         
-                        <button type="submit" class="submit-button" name="save">Save</button>
+                        <button type="submit" class="submit-button" name="save">Сохранить</button>
                     </form>
                 </div>
                 <?php  } else {?>
@@ -132,7 +116,7 @@
                             <th>Имя</th>
                             <th>Фамилия</th>
                             <th>Email</th>
-                            <th>Пол</th>
+                            <th>Username</th>
                             <th></th>
                             <th>Edit</th>
                             <th>Delete</th>
@@ -147,7 +131,7 @@
                             <td><?php echo $data['firstName']; ?></td>
                             <td><?php echo $data['lastName']; ?></td>
                             <td><?php echo $data['email']; ?></td>
-                            <td><?php echo $data['gender']; ?></td>
+                            <td><?php echo $data['username']; ?></td>
                             <td></td>
                             <td><a href="admin-managing.php?cat=add-admin&edit=<?php echo $data['id']; ?>"><i class="far fa-edit"></i></a></td>
                             <td><a href="admin-managing.php?cat=delete-admin&id=<?php echo $data['id']; ?>" class="delete" name="admin_profile" id="<?php echo $data['id']; ?>"><i class="far fa-trash-alt"></i></a></td>
@@ -187,19 +171,6 @@
                     $('#confirmBox').fadeOut();
                 });
             }
-        });
-        $('.gender').click(function () {
-            $(this).attr('tabindex', 1).focus();
-            $(this).toggleClass('active');
-            $(this).find('.dropdown-menu').slideToggle(300);
-        });
-        $('.gender').focusout(function () {
-            $(this).removeClass('active');
-            $(this).find('.dropdown-menu').slideUp(300);
-        });
-        $('.gender .dropdown-menu li').click(function () {
-            $(this).parents('.gender').find('span').text($(this).text());
-            $(this).parents('.gender').find('input').attr('value', $(this).attr('id'));
         });
     </script>
 </body>

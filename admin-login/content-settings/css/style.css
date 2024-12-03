@@ -118,16 +118,16 @@
 .containr {
     width: 50%;
 }
-.name input, .date-birth input, .date-death input, .containr input, .submit-button {
+.name input, .containr input, .rating input .submit-button {
     margin-top: 20px;
 }
-.name input, .date-birth input, .date-death input, .containr input {
+.name input, .containr input, .rating input {
     margin-left: 20px;
     margin-right: 20px;
     padding: 20px 30px;
     border-radius: 15px;
 }
-.name input, .date-birth input, .date-death input, .containr input{
+.name input, .containr input, .rating input{
     border: 2px solid #3e3e3e;
     color: white;
     background-color: inherit;
@@ -135,7 +135,7 @@
     cursor: pointer;
     transition: 0.4s;
 }
-.name input:focus, .date-birth input:focus, .date-death input:focus, .containr input:focus{
+.name input:focus, .containr input:focus, .rating input:focus{
     border-color: #CC9600;
     transition: 0.4s;
 }
@@ -163,7 +163,7 @@
     border-radius: 20px;
 }
 
-.name input:focus, .date-birth input:focus, .date-death input:focus, .submit-button:hover {
+.name input:focus, .rating input:focus  .submit-button:hover {
     border-color: #CC9600;
     transition: 0.4s;
 }
@@ -244,7 +244,7 @@
     background-color: #3e3e3e;
 }
 
-#author, #genre {
+#author, #genre, #img {
     padding: 20px 30px;
     margin: 20px auto 0;
     width: 229px;
@@ -258,13 +258,13 @@
     font-size: 13px;
     height: 60px;
 }
-#author:focus, #author:hover, #genre:focus, #genre:hover {
+#author:focus, #author:hover, #genre:focus, #genre:hover, #img:hover, #img:focus {
     border: 3px solid #CC9600;
 }
 
 .drop-content {
     display: none;
-    background-color: inherit;
+    background-color: #CC9600;
     border: 1px solid #2d2d2d;
     border-radius: 15px;
     z-index: 1;

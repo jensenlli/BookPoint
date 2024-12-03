@@ -130,9 +130,9 @@ if (empty($email_address))
                 <div class="hheader">
                     <?php
                         if (empty($_GET['edit'])) {
-                            echo "<h4>Добавление жанра</h4>";
+                            echo "<h4 style='margin-left: 470px;'>Добавление жанра</h4>";
                         } else {
-                            echo "<h4>Редактирование жанра</h4>";
+                            echo "<h4 style='margin-left: 440px;'>Редактирование жанра</h4>";
                         }
                     ?>
                     <a href="genre.php"><button class="right">Перейти к обзору жанров</button></a>
@@ -149,7 +149,6 @@ if (empty($email_address))
                 <?php  } else {?>
                 <div class="hheader">
                     <h4>Управление жанрами</h4>
-                    <button type="button" class="export" name="export-genre">Export to Excel</button>
                     <a href="genre.php?cat=add-genre"><button class="right">Добавить жанр</button></a>
                 </div>
                 <div class="view">
@@ -184,6 +183,7 @@ if (empty($email_address))
                         ?>
                     </table>
                 </div>
+                <br>
                 <div class="hheader">
                     <h4>Удаленные жанры</h4>
                 </div>
@@ -225,21 +225,5 @@ if (empty($email_address))
     </div>
     <script src="https://kit.fontawesome.com/a9f6196afa.js" crossorigin="anonymous"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script>
-        $(document).on('click', '.export', function(e) {
-            var el = $(this);
-            var name=$(this).attr('name');
-            $.ajax({
-                url: "partials/export.php",
-                type: "GET",
-                data: {
-                    operation: name
-                },
-                success: function(result) {
-                    alert("Exported!");
-                }
-            })
-        });
-    </script>
 </body>
 </html>

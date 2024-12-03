@@ -95,14 +95,9 @@ if (empty($email_address))
                             $res = $conn -> query($query);
                             $editData = mysqli_fetch_assoc($res);
                             $name = $editData['name'];
-                            $dateBirth = $editData['date_birth'];
-                            $dateDeath = $editData['date_death'];
-
                             $idAttr = "updateAuthorForm";
                         } else {
                             $name = "";
-                            $dateBirth = "2021-10-19";
-                            $dateDeath = "1900-01-01";
 
                             $editId = "";
                             $idAttr = "authorForm";
@@ -113,31 +108,28 @@ if (empty($email_address))
                 <?php
                     if (isset($_POST['save'])) {
                         if (empty($_GET['edit'])) {
-                            $sql = "INSERT INTO author (name,date_birth,date_death) VALUES (?,?,?)";
+                            $sql = "INSERT INTO author (name) VALUES (?)";
                             $stmt = mysqli_prepare($conn, $sql);
-                            mysqli_stmt_bind_param($stmt, "sss", $_POST['name'], $_POST['dateBirth'], $_POST['dateDeath']);
+                            mysqli_stmt_bind_param($stmt, "s", $_POST['name']);
                             mysqli_stmt_execute($stmt);
                             $sqlTransaction = "INSERT INTO transactions (name, description) VALUES ('Add author', 'Add author ".$_POST['name']."')";
                             $stmt = mysqli_prepare($conn, $sqlTransaction);
                             $stmt -> execute();
                         } else {
-                            $sql = "UPDATE author SET name=?, date_birth=?, date_death=? WHERE id=".$_GET['edit'];
+                            $sql = "UPDATE author SET name=? WHERE id=".$_GET['edit'];
                             $stmt = mysqli_prepare($conn, $sql);
-                            $stmt -> bind_param("sss", $_POST['name'], $_POST['dateBirth'], $_POST['dateDeath']);
+                            $stmt -> bind_param("s", $_POST['name']);
                             $stmt -> execute();
                             $sqlTransaction = "INSERT INTO transactions (name, description) VALUES ('Edit Author', 'Edit author ".$_POST['name']."')";
-                            if (!mysqli_query($conn, $sqlTransaction)) {
-                                echo ("Error:".mysqli_error($conn));
-                            }
                         }
                     }
                 ?>
                 <div class="hheader">
                     <?php
                         if (empty($_GET['edit'])) {
-                            echo "<h4>Добавление автора</h4>";
+                            echo "<h4 style='margin-left: 460px;'>Добавление автора</h4>";
                         } else {
-                            echo "<h4>Редактирование автора</h4>";
+                            echo "<h4 style='margin-left: 440px;'>Редактирование автора</h4>";
                         }
                     ?>
                     <a href="author.php"><button class="right">Перейти к обзору авторов</button></a>
@@ -148,29 +140,18 @@ if (empty($email_address))
                             <span>Фамилия и имя</span>
                             <input type="text" placeholder="Фамилия и имя" name="name" value="<?php echo $name ?>" required>
                         </div>
-                        <div class="date-birth">
-                            <span>Дата рождения</span>
-                            <input type="date" name="dateBirth" value="<?php echo $dateBirth ?>" max="2021-10-19" required>
-                        </div>
-                        <div class="date-death">
-                            <span>Дата смерти</span>
-                            <input type="date" name="dateDeath" value="<?php echo $dateDeath ?>">
-                        </div>
                         <button type="submit" class="submit-button" name="save">Сохранить</button>
                     </form>
                 </div>
                 <?php  } else {?>
                 <div class="hheader">
                     <h4>Управление авторами</h4>
-                    <button type="button" class="export" name="export-author">Export to Excel</button>
                     <a href="author.php?cat=add-author"><button class="right">Добавить автора</button></a>
                 </div>
                 <div class="view">
                     <table>
                         <tr>
                             <th>Фамилия и имя</th>
-                            <th>Дата рождения</th>
-                            <th>Дата смерти</th>
                             <th></th>
                             <th>Редактировать</th>
                             <th>Удалить</th>
@@ -183,14 +164,6 @@ if (empty($email_address))
                         ?>
                         <tr>
                             <td><?php echo $data['name']; ?></td>
-                            <td><?php echo $data['date_birth']; ?></td>
-                            <td><?php 
-                                if ($data['date_death'] == '1900-01-01') {
-                                    echo ' ';
-                                } else {
-                                    echo $data['date_death'];
-                                }
-                            ?></td>
                             <td></td>
                             <td><a href="author.php?cat=add-author&edit=<?php echo $data['id']; ?>"><i class="far fa-edit"></i></a></td>
                             <td><a class="delete" name="delete-author" id="<?php echo $data['id']; ?>" href="javascript:void(0)"><i class="far fa-trash-alt"></i></a></td>
@@ -207,6 +180,7 @@ if (empty($email_address))
                         ?>
                     </table>
                 </div>
+                <br>
                 <div class="hheader">
                     <h4>Удаленные авторы</h4>
                 </div>
@@ -214,8 +188,6 @@ if (empty($email_address))
                     <table>
                         <tr>
                             <th>Фамилия и имя</th>
-                            <th>Дата рождения</th>
-                            <th>Дата смерти</th>
                             <th></th>
                             <th>Удалить</th>
                             <th>Восстановить</th>
@@ -228,14 +200,6 @@ if (empty($email_address))
                         ?>
                         <tr>
                             <td><?php echo $data['name']; ?></td>
-                            <td><?php echo $data['date_birth']; ?></td>
-                            <td><?php 
-                                if ($data['date_death'] == '1900-01-01') {
-                                    echo ' ';
-                                } else {
-                                    echo $data['date_death'];
-                                }
-                            ?></td>
                             <td></td>
                             <td><a href="javascript:void(0)" class="full-delete" name="full-delete-author" id="<?php echo $data['id']; ?>"><i class="far fa-trash-alt"></i></a></td>
                             <td><a href="javascript:void(0)" class="restore" name="restore-author" id="<?php echo $data['id']; ?>"><i class="far fa-trash-alt"></i></a></td>
@@ -258,21 +222,5 @@ if (empty($email_address))
     </div>
     <script src="https://kit.fontawesome.com/a9f6196afa.js" crossorigin="anonymous"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script>
-        $(document).on('click', '.export', function(e) {
-            var el = $(this);
-            var name=$(this).attr('name');
-            $.ajax({
-                url: "partials/export.php",
-                type: "GET",
-                data: {
-                    operation: name
-                },
-                success: function(result) {
-                    alert("Exported!");
-                }
-            })
-        });
-    </script>
 </body>
 </html>
