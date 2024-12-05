@@ -103,6 +103,7 @@
                 <li class="content-element"><a href="/admin-login/content-settings/author.php" class="content-link">Авторы</a></li>
                 <li class="content-element"><a href="/admin-login/content-settings/genre.php" class="content-link">Жанры</a></li>
                 <li class="content-element"><a href="/admin-login/content-settings/book.php" class="content-link">Книги</a></li>
+                <li class="content-element"><a href="/admin-login/content-settings/text_book.php" class="content-link">Тексты</a></li>
             </ul>
         </div>
     </div>

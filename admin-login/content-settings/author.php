@@ -36,7 +36,10 @@ if (empty($email_address))
                 dataType: "html",
                 success: function(data) {
                     alert('deleted!');
-                }
+                },
+                complete: function() { // Вызывается после успешного выполнения запроса
+                location.reload();
+                } // Перезагружаем страницу
             })
         });
 
@@ -54,7 +57,10 @@ if (empty($email_address))
                 dataType: "html",
                 success: function(data) {
                     alert('restored!');
-                }
+                },
+                complete: function() { // Вызывается после успешного выполнения запроса
+                location.reload();
+                } // Перезагружаем страницу
             })
         });
 
@@ -72,7 +78,10 @@ if (empty($email_address))
                 dataType: "html",
                 success: function(data) {
                     alert("Full deleted!");
-                }
+                },
+                complete: function() { // Вызывается после успешного выполнения запроса
+                location.reload();
+                } // Перезагружаем страницу
             })
         });
     </script>
@@ -202,7 +211,7 @@ if (empty($email_address))
                             <td><?php echo $data['name']; ?></td>
                             <td></td>
                             <td><a href="javascript:void(0)" class="full-delete" name="full-delete-author" id="<?php echo $data['id']; ?>"><i class="far fa-trash-alt"></i></a></td>
-                            <td><a href="javascript:void(0)" class="restore" name="restore-author" id="<?php echo $data['id']; ?>"><i class="far fa-trash-alt"></i></a></td>
+                            <td><a href="javascript:void(0)" class="restore" name="restore-author" id="<?php echo $data['id']; ?>"><i class="far fa-edit"></i></a></td>
                         </tr>
                         <?php
                                 }

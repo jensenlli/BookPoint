@@ -34,7 +34,10 @@ if (empty($email_address)) {
                 dataType: "html",
                 success: function(data) {
                     alert('deleted!');
-                }
+                },
+                complete: function() { // Вызывается после успешного выполнения запроса
+                location.reload();
+                } // Перезагружаем страницу
             })
         });
 
@@ -52,7 +55,10 @@ if (empty($email_address)) {
                 dataType: "html",
                 success: function(data) {
                     alert('restored!');
-                }
+                },
+                complete: function() { // Вызывается после успешного выполнения запроса
+                location.reload();
+                } // Перезагружаем страницу
             })
         });
 
@@ -70,7 +76,10 @@ if (empty($email_address)) {
                 dataType: "html",
                 success: function(data) {
                     alert("Full deleted!");
-                }
+                },
+                complete: function() { // Вызывается после успешного выполнения запроса
+                location.reload();
+                } // Перезагружаем страницу
             })
         });
     </script>
@@ -101,6 +110,7 @@ if (empty($email_address)) {
                         $pub = $editData['Publisher'];
                         $isbn = $editData['ISBN'];
                         $rating = $editData['rating'];
+                        $bookAddedBy = $editData['bookAddedBy'];
 
                         $idAttr = "updateBookForm";
                     } else {
@@ -112,6 +122,7 @@ if (empty($email_address)) {
                         $pub = "";
                         $isbn = "";
                         $rating = "";
+                        $bookAddedBy = "";
 
                         $editId = "";
                         $idAttr = "bookForm";
@@ -124,16 +135,23 @@ if (empty($email_address)) {
                             $sqlauthor = "SELECT id FROM author WHERE name='" . $_POST['authorId'] . "'";
                             $resauthor = $conn->query($sqlauthor);
                             $dataauthor = mysqli_fetch_assoc($resauthor);
+
                             $sqlgenre = "SELECT id FROM genre WHERE name='" . $_POST['genreId'] . "'";
                             $resgenre = $conn->query($sqlgenre);
                             $datagenre = mysqli_fetch_assoc($resgenre);
-                            $sql = "INSERT INTO book (name,authorId,genreId,rating,ISBN,yearPub,Publisher,img) VALUES (?,?,?,?,?,?,?,?)";
+
+                            $sqladded = "SELECT id FROM admins WHERE email='" . $_SESSION['email'] . "'";
+                            $resadded = $conn->query($sqladded);
+                            $datadded = mysqli_fetch_assoc($resadded);
+
+                            $sql = "INSERT INTO book (name,authorId,genreId,rating,ISBN,yearPub,Publisher,img,bookAddedBy) VALUES (?,?,?,?,?,?,?,?,?)";
                             $stmt = mysqli_prepare($conn, $sql);
-                            mysqli_stmt_bind_param($stmt, "siidiiss", $_POST['name'], $dataauthor['id'], $datagenre['id'], $_POST['rating'], $_POST['ISBN'], $_POST['yearPub'], $_POST['Publisher'], $_POST['img']);
+                            mysqli_stmt_bind_param($stmt, "siidiissi", $_POST['name'], $dataauthor['id'], $datagenre['id'], $_POST['rating'], $_POST['ISBN'], $_POST['yearPub'], $_POST['Publisher'], $_POST['img'], $datadded['id']);
                             mysqli_stmt_execute($stmt);
                             $sqlTransaction = "INSERT INTO transactions (name, description) VALUES ('Add book', 'Add book " . $_POST['name'] . "')";
                             $stmt = mysqli_prepare($conn, $sqlTransaction);
                             $stmt->execute();
+                            
                         } else {
                             $sqlauthor = "SELECT id FROM author WHERE name='" . $_POST['authorId'] . "'";
                             $resauthor = $conn->query($sqlauthor);
@@ -143,7 +161,7 @@ if (empty($email_address)) {
                             $datagenre = mysqli_fetch_assoc($resgenre);
                             $sql = "UPDATE book SET name=?, authorId=?, genreId=?,rating=?,ISBN=?,yearPub=?,Publisher=?,img=? WHERE id=" . $_GET['edit'];
                             $stmt = mysqli_prepare($conn, $sql);
-                            $stmt->bind_param("siidiiss", $_POST['name'], $dataauthor['id'], $datagenre['id'], $_POST['rating'], $_POST['ISBN'], $_POST['yearPub'], $_POST['Publisher'], $_POST['img']);
+                            $stmt->bind_param("siidiissi", $_POST['name'], $dataauthor['id'], $datagenre['id'], $_POST['rating'], $_POST['ISBN'], $_POST['yearPub'], $_POST['Publisher'], $_POST['img']);
                             $stmt->execute();
                             $sqlTransaction = "INSERT INTO transactions (name, description) VALUES ('Edit book', 'Edit book " . $_POST['name'] . "')";
                             $stmt = mysqli_prepare($conn, $sqlTransaction);
@@ -418,7 +436,7 @@ if (empty($email_address)) {
                                         <td><?php echo $data['img']; ?></td>
                                         <td></td>
                                         <td><a href="javascript:void(0)" class="full-delete" name="full-delete-book" id="<?php echo $data['id']; ?>"><i class="far fa-trash-alt"></i></a></td>
-                                        <td><a href="javascript:void(0)" class="restore" name="restore-book" id="<?php echo $data['id']; ?>"><i class="far fa-trash-alt"></i></a></td>
+                                        <td><a href="javascript:void(0)" class="restore" name="restore-book" id="<?php echo $data['id']; ?>"><i class="far fa-edit"></i></a></td>
                                     </tr>
                                 <?php
                                 }

@@ -44,6 +44,18 @@
             $sqlbook = "UPDATE book SET flag = 0 WHERE id=".$_GET['deleteId'];
             $stmtbook = mysqli_prepare($conn, $sqlbook);
             $stmtbook -> execute();
+        } else if ($_GET['deleteData'] == 'delete-text') {
+            $sql = "SELECT text, bookid FROM textbook WHERE id=".$_GET['deleteId'];
+            $res = $conn -> query($sql);
+            $data = mysqli_fetch_assoc($res);
+            
+            $sqlTransaction = "INSERT INTO transactions (name, description) VALUES ('Delete text', 'Delete text in book ".$data['bookid']."')";
+            $stmt = mysqli_prepare($conn, $sqlTransaction);
+            $stmt -> execute();
+
+            $sqlbook = "UPDATE textbook SET flag = 0 WHERE id=".$_GET['deleteId'];
+            $stmtbook = mysqli_prepare($conn, $sqlbook);
+            $stmtbook -> execute();
         }
     }
 
@@ -99,6 +111,18 @@
             $sqlgenre = "UPDATE genre SET flag = 1 WHERE id = (SELECT genreId FROM book WHERE id=".$_GET['restoreId'].")";
             $stmtgenre = mysqli_prepare($conn, $sqlgenre);
             $stmtgenre -> execute();
+        } else if ($_GET['restoreData'] == 'restore-text') {
+            $sql = "SELECT text, bookid FROM textbook WHERE id=".$_GET['restoreId'];
+            $res = $conn -> query($sql);
+            $data = mysqli_fetch_assoc($res);
+
+            $sqlTransaction = "INSERT INTO transactions (name, description) VALUES ('Restore text', 'Restore text in book ".$data['bookid']."')";
+            $stmt = mysqli_prepare($conn, $sqlTransaction);
+            $stmt -> execute();
+
+            $sqlbook = "UPDATE textbook SET flag = 1 WHERE id=".$_GET['restoreId'];
+            $stmtbook = mysqli_prepare($conn, $sqlbook);
+            $stmtbook -> execute();
         }
     }
 
@@ -145,6 +169,18 @@
             $stmtTransaction -> execute();
 
             $sqlbook = "DELETE FROM book WHERE id=".$_GET['fullDeleteId'];
+            $stmtbook = mysqli_prepare($conn, $sqlbook);
+            $stmtbook -> execute();
+        } else if ($_GET['fullDeleteData'] == 'full-delete-text') {
+            $sql = "SELECT text, bookid FROM textbook WHERE id=".$_GET['fullDeleteId'];
+            $res = $conn -> query($sql);
+            $data = mysqli_fetch_assoc($res);
+
+            $sqlTransaction = "INSERT INTO transactions (name, description) VALUES ('Full deleted text', 'Full delete text in book ".$data['bookid']."')";
+            $stmtTransaction = mysqli_prepare($conn, $sqlTransaction);
+            $stmtTransaction -> execute();
+
+            $sqlbook = "DELETE FROM textbook WHERE id=".$_GET['fullDeleteId'];
             $stmtbook = mysqli_prepare($conn, $sqlbook);
             $stmtbook -> execute();
         }

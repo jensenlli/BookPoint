@@ -41,7 +41,7 @@ $limit = 10;
                             </ul>
                         </li>
                     </ul>
-                    <input type="submit" value="Filter!" name="filter" class="filterbutton">
+                    <input type="submit" value="Фильтровать" name="filter" class="filterbutton">
                 </form>
 
                 <?php

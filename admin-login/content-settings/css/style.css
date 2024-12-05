@@ -48,24 +48,6 @@
     background: #CC9600;
 }
 
-.export {
-    margin-right: 5px;
-    border: 0;
-    background: none;
-    display: block;
-    text-align: center;
-    border: 2px solid #CC9600;
-    padding: 14px 40px;
-    outline: none;
-    color:white;
-    border-radius: 24px;
-    transition: 0.4s;
-    cursor: pointer;
-}
-.export:hover {
-    background: #CC9600;
-}
-
 .view {
     display: block;
     font-size: 14px;
@@ -118,7 +100,7 @@
 .containr {
     width: 50%;
 }
-.name input, .containr input, .rating input .submit-button {
+.name input, .containr input, .containr_2 input, .rating input .submit-button {
     margin-top: 20px;
 }
 .name input, .containr input, .rating input {
@@ -127,7 +109,7 @@
     padding: 20px 30px;
     border-radius: 15px;
 }
-.name input, .containr input, .rating input{
+.name input, .containr input, .containr_2 input, .rating input{
     border: 2px solid #3e3e3e;
     color: white;
     background-color: inherit;
@@ -135,9 +117,19 @@
     cursor: pointer;
     transition: 0.4s;
 }
-.name input:focus, .containr input:focus, .rating input:focus{
+.name input:focus, .containr input:focus, .containr_2 input:focus, .rating input:focus{
     border-color: #CC9600;
     transition: 0.4s;
+}
+.containr_2 input{
+    padding-bottom: 320px !important;
+    position: absolute;
+    top: 0px;
+    left: 800px;
+    margin-left: 20px;
+    margin-right: 20px;
+    padding: 20px 30px;
+    border-radius: 15px;
 }
 
 .submit-button{
