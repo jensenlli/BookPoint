@@ -3,6 +3,7 @@ session_start();
 include('config/dbConnect.php');
 
 $userId = $_SESSION['user']['id'];
+
 ?>
 
 <!DOCTYPE html>
@@ -23,16 +24,17 @@ $userId = $_SESSION['user']['id'];
     <div class="wrapper">
         <?php include('header.php'); ?>
         <div class="page">
-            <div class="filter">
-            <ul>
-                <li style="padding-left: 20px;">Рекомендации специально для</li>
-                <li style= "padding-left: 20px; color: #CC9600;position: absolute;left: 70px;top: 156px;">Вас</li>
+            <?php if ($userId): ?>
+                <div class="filter" id="filter">
                     <ul>
-            
-            <div class="recommended-books">
-                <?php
-                // Запрос для выбора трех книг с самым высоким рейтингом
-                $sql_recommendations = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, ROUND(b.rating, 2) AS rating_2 
+                        <li style="padding-left: 20px;">Рекомендации специально для</li>
+                        <li style="padding-left: 20px; color: #CC9600;position: absolute;left: 70px;top: 156px;">Вас</li>
+                        <ul>
+
+                            <div class="recommended-books">
+                                <?php
+                                // Запрос для выбора трех книг с самым высоким рейтингом
+                                $sql_recommendations = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, ROUND(b.rating, 2) AS rating_2 
                 FROM book b 
                 LEFT JOIN author a ON b.authorId = a.id 
                 LEFT JOIN genre g ON b.genreId = g.id 
@@ -40,34 +42,35 @@ $userId = $_SESSION['user']['id'];
                 ORDER BY b.rating DESC 
                 LIMIT 3";
 
-                $stmt_recommendations = $conn->prepare($sql_recommendations);
-                // Выполняем запрос
-                $stmt_recommendations->execute();
-                $res_recommendations = $stmt_recommendations->get_result();
+                                $stmt_recommendations = $conn->prepare($sql_recommendations);
+                                // Выполняем запрос
+                                $stmt_recommendations->execute();
+                                $res_recommendations = $stmt_recommendations->get_result();
 
-                if ($res_recommendations->num_rows > 0) {
-                    while ($data = $res_recommendations->fetch_assoc()) {
-                        ?>
-                        <a href = "thisbook.php?id=<?php echo $data['bookid']; ?>" style = "color:black !important;">
-                        <div class="container-book">
-                            <div class="bookimage_rec">
-                                <img src="<?php echo htmlspecialchars($data['img']); ?>" alt="bookimage_rec" style="width: 110px;">
+                                if ($res_recommendations->num_rows > 0) {
+                                    while ($data = $res_recommendations->fetch_assoc()) {
+                                ?>
+                                        <a href="thisbook.php?id=<?php echo $data['bookid']; ?>" style="color:black !important;">
+                                            <div class="container-book">
+                                                <div class="bookimage_rec">
+                                                    <img src="<?php echo htmlspecialchars($data['img']); ?>" alt="bookimage_rec" style="width: 110px;">
+                                                </div>
+                                                <div class="information">
+                                                    <h4><?php echo htmlentities($data['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
+                                                    <p>Genre: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Author: <?php echo htmlentities($data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Rating: <?php echo htmlentities($data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    <?php }
+                                } else {
+                                    ?>
+                                    <p class="msg_null">Нет рекомендаций доступных в данный момент.</p>
+                                <?php } ?>
                             </div>
-                            <div class="information">
-                                <h4><?php echo htmlentities($data['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
-                                <p>Genre: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                <p>Author: <?php echo htmlentities($data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                <p>Rating: <?php echo htmlentities($data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
-                            </div>
-                        </div>
-                        </a>
-                    <?php }
-                } else {
-                    ?>
-                    <p class="msg_null">Нет рекомендаций доступных в данный момент.</p>
-                <?php } ?>
-            </div>
-            </div>
+                </div>
+            <?php endif; ?>
 
             <div class="library">
                 <p class="allbooks">Мои любимые книги здесь</p>
@@ -86,16 +89,16 @@ $userId = $_SESSION['user']['id'];
                 // Выполняем запрос
                 $stmt->execute();
                 $res = $stmt->get_result();
-                
+
                 if ($res->num_rows > 0) {
                     while ($data = $res->fetch_assoc()) {
-                            ?>
+                ?>
                         <div class="container-book">
-                        <a href = "thisbook.php?id=<?php echo $data['bookid']; ?>">
-                            <div class="bookimage">
-                                <img src="<?php echo htmlspecialchars($data['img']); ?>" alt="bookimage">
-                            </div>
-                        </a>
+                            <a href="thisbook.php?id=<?php echo $data['bookid']; ?>">
+                                <div class="bookimage">
+                                    <img src="<?php echo htmlspecialchars($data['img']); ?>" alt="bookimage">
+                                </div>
+                            </a>
                             <div class="information">
                                 <h4><?php echo htmlentities($data['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
                                 <p>Genre: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
@@ -154,4 +157,5 @@ $userId = $_SESSION['user']['id'];
     </script>
     <script src="https://kit.fontawesome.com/a9f6196afa.js" crossorigin="anonymous"></script>
 </body>
+
 </html>
