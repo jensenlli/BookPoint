@@ -332,6 +332,7 @@ if (empty($email_address)) {
                     <div class="view">
                         <table>
                             <tr>
+                                <th>id</th>
                                 <th>Название</th>
                                 <th>Автор</th>
                                 <th>Жанр</th>
@@ -352,6 +353,7 @@ if (empty($email_address)) {
                                 while ($data = mysqli_fetch_assoc($res)) {
                             ?>
                                     <tr>
+                                        <td><?php echo $data['id']; ?></td>
                                         <td><?php echo $data['name']; ?></td>
                                         <td><?php
                                             $sqlauthor = "SELECT name FROM author WHERE id=" . $data['authorId'];
@@ -395,6 +397,7 @@ if (empty($email_address)) {
                     <div class="view">
                         <table>
                             <tr>
+                                <th>id</th>
                                 <th>Название</th>
                                 <th>Автор</th>
                                 <th>Жанр</th>
@@ -414,6 +417,7 @@ if (empty($email_address)) {
                                 while ($data = mysqli_fetch_assoc($res)) {
                             ?>
                                     <tr>
+                                        <td><?php echo $data['id']; ?></td>
                                         <td><?php echo $data['name']; ?></td>
                                         <td><?php
                                             $sqlauthor = "SELECT name FROM author WHERE id=" . $data['authorId'];
