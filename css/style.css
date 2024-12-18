@@ -215,6 +215,21 @@ h4 {
         cursor: pointer;
     }
 
+    .rating-button{
+        background-color: #CC9600;
+        margin: 20px auto;
+        text-align: center;
+        padding: 8px 20px;
+        outline: none;
+        color: white;
+        border-radius: 24px;
+        transition: 0.4s;
+        cursor: pointer;
+    }
+    .rating-button:hover, .rating-button:focus{
+        background-color: #624b0a;
+    }
+
     .autoriz{
         color:#CC9600 !important;
         text-align: center;
@@ -282,3 +297,53 @@ h4 {
         font-size: 15px;
         border-radius: .3rem;
     }
+    
+    /*Модальное окно с рейтингом*/
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .close-success, .close-error{
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    font-size: 25px;
+    }
+
+    .box_thanks {
+        background-image:url("https://cdn.prod.website-files.com/625698fc770b752c2452169f/666855b1a191eb95df631bb4_juucy-recruiter-lp%20(12).png");
+        background-position:center center;
+        background-size:cover;
+        width:300px;
+        height:300px;
+     }
