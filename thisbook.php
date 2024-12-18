@@ -91,11 +91,11 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
         <img src="<?php echo htmlentities($row['img'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlentities($row['bookname'], ENT_QUOTES, 'UTF-8'); ?>" class="card-img-top">
         <div class="card-body">
             <h1 class="card-title"><?php echo htmlentities($row['bookname'], ENT_QUOTES, 'UTF-8'); ?></h1>
-            <p><strong>Author:</strong> <?php echo htmlentities($row['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
-            <p><strong>Genre:</strong> <?php echo htmlentities($row['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
-            <p><strong>Rating:</strong> <?php echo htmlentities($row['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
-            <p><strong>Year of publisher:</strong> <?php echo htmlentities($row['yearPub'], ENT_QUOTES, 'UTF-8'); ?></p>
-            <p><strong>Publisher:</strong> <?php echo htmlentities($row['Publisher'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <p><strong>Автор:</strong> <?php echo htmlentities($row['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <p><strong>Жанр:</strong> <?php echo htmlentities($row['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <p><strong>Рейтинг:</strong> <?php echo htmlentities($row['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <p><strong>Год публикации:</strong> <?php echo htmlentities($row['yearPub'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <p><strong>Издательство:</strong> <?php echo htmlentities($row['Publisher'], ENT_QUOTES, 'UTF-8'); ?></p>
             <p><strong>IBSN:</strong> <?php echo htmlentities($row['ISBN'], ENT_QUOTES, 'UTF-8'); ?></p>
             <br>
             <form method="GET" action="thisbook.php">

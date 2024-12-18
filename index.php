@@ -26,16 +26,34 @@ $limit = 10;
                         <li>Жанры
                             <ul>
                                 <?php
+
+                                // Ассоциативный массив для сопоставления жанров
+                                $genreTranslations = [
+                                    'Psychology' => 'Психология',
+                                    'Thriller' => 'Триллер',
+                                    'Detective' => 'Детектив',
+                                    'Novel' => 'Роман',
+                                    'Historycal' => 'Историческое',
+                                    'Faniastics' => 'Фантастика',
+                                    'Comedy' => 'Комедия',
+                                    'Prose' => 'Проза',
+                                    'Documentary' => 'Документальное',
+                                    'Classics' => 'Классика',
+                                    'Drama' => 'Драма'
+                                ];
+
                                 // Получение жанров
                                 $sqlgenres = "SELECT * FROM genre WHERE flag = 1 ORDER BY name";
                                 $res = $conn->query($sqlgenres);
                                 if (!$res) echo mysqli_error($conn);
 
                                 while ($data = mysqli_fetch_assoc($res)) {
+                                    $englishName = $data['name'];
+                                    $russianName = isset($genreTranslations[$englishName]) ? $genreTranslations[$englishName] : $englishName; // Получаем русское название
                                 ?>
                                     <li>
                                         <input type="checkbox" name="genres[]" value="<?php echo $data['id']; ?>" id="genre-<?php echo $data['id']; ?>" <?php if (isset($_GET['genres']) && in_array($data['id'], $_GET['genres'])) echo "checked"; ?>>
-                                        <label for="genre-<?php echo $data['id']; ?>"><?php echo $data['name'] ?></label>
+                                        <label for="genre-<?php echo $data['id']; ?>"><?php echo $russianName; ?></label>
                                     </li>
                                 <?php } ?>
                             </ul>
@@ -165,9 +183,9 @@ $limit = 10;
                             </a>
                             <div class="information">
                                 <h4><?php echo $data['bookname'] ?></h4>
-                                <p>Genre: <?php echo $data['genrename'] ?></p>
-                                <p>Author: <?php echo $data['authorname'] ?></p>
-                                <p>Rating: <?php echo $data['rating_2'] ?></p>
+                                <p>Жанр: <?php echo $data['genrename'] ?></p>
+                                <p>Автор: <?php echo $data['authorname'] ?></p>
+                                <p>Рейтинг: <?php echo $data['rating_2'] ?></p>
                                 <br>
                                 <form action="add_to_favorites.php" method="POST">
                                     <input type="hidden" name="book_id" value="<?php echo $data['bookid']; ?>">

@@ -57,9 +57,9 @@ $userId = $_SESSION['user']['id'];
                                                 </div>
                                                 <div class="information">
                                                     <h4><?php echo htmlentities($data['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
-                                                    <p>Genre: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                                    <p>Author: <?php echo htmlentities($data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                                    <p>Rating: <?php echo htmlentities($data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Жанр: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Автор: <?php echo htmlentities($data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Рейтинг: <?php echo htmlentities($data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
                                                 </div>
                                             </div>
                                         </a>
@@ -101,9 +101,9 @@ $userId = $_SESSION['user']['id'];
                             </a>
                             <div class="information">
                                 <h4><?php echo htmlentities($data['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
-                                <p>Genre: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                <p>Author: <?php echo htmlentities($data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                <p>Rating: <?php echo htmlentities($data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                <p>Жанр: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                <p>Автор: <?php echo htmlentities($data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                <p>Рейтинг: <?php echo htmlentities($data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
                                 <br>
                                 <form action="remove_to_favorites.php" method="POST">
                                     <input type="hidden" name="book_id" value="<?php echo $data['bookid']; ?>">
