@@ -4,6 +4,32 @@ include('config/dbConnect.php');
 
 $userId = $_SESSION['user']['id'];
 
+// Получение рекомендаций от Flask API
+// Проверка наличия записей в таблице favorites для данного пользователя
+$recommendations = [];
+if ($userId) {
+    $sql_check = "SELECT COUNT(*) AS count FROM favorites WHERE user_id = ?";
+    $stmt_check = $conn->prepare($sql_check);
+    $stmt_check->bind_param("i", $userId);
+    $stmt_check->execute();
+    $res_check = $stmt_check->get_result();
+    $row_check = $res_check->fetch_assoc();
+
+    // Если записи отсутствуют, не запрашиваем рекомендации
+    if ($row_check['count'] > 0) {
+        // Получение рекомендаций от Flask API
+        $url = "http://127.0.0.1:5000/recommend?user_id=" . $userId . "&n=5"; // Измените на ваш IP, если нужно
+        $response = file_get_contents($url);
+        $data = json_decode($response, true);
+        
+        if (isset($data['recommendations'])) {
+            $recommendations = $data['recommendations'];
+        }
+    } else {
+        // Если нет записей в favorites, оставляем рекомендации пустыми
+        $recommendations = [];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -32,42 +58,38 @@ $userId = $_SESSION['user']['id'];
                         <ul>
 
                             <div class="recommended-books">
-                                <?php
-                                // Запрос для выбора трех книг с самым высоким рейтингом
-                                $sql_recommendations = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, ROUND(b.rating, 2) AS rating_2 
-                FROM book b 
-                LEFT JOIN author a ON b.authorId = a.id 
-                LEFT JOIN genre g ON b.genreId = g.id 
-                WHERE b.flag = 1 
-                ORDER BY b.rating DESC 
-                LIMIT 3";
-
-                                $stmt_recommendations = $conn->prepare($sql_recommendations);
-                                // Выполняем запрос
-                                $stmt_recommendations->execute();
-                                $res_recommendations = $stmt_recommendations->get_result();
-
-                                if ($res_recommendations->num_rows > 0) {
-                                    while ($data = $res_recommendations->fetch_assoc()) {
-                                ?>
-                                        <a href="thisbook.php?id=<?php echo $data['bookid']; ?>" style="color:black !important;">
+                            <?php if (!empty($recommendations)): ?>
+                                    <?php foreach ($recommendations as $book_id): ?>
+                                        <?php
+                                        // Получите информацию о книге из базы данных
+                                        $sql_book = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, ROUND(b.rating, 2) AS rating_2 
+                                                     FROM book b 
+                                                     LEFT JOIN author a ON b.authorId = a.id 
+                                                     LEFT JOIN genre g ON b.genreId = g.id 
+                                                     WHERE b.id = ?";
+                                        $stmt_book = $conn->prepare($sql_book);
+                                        $stmt_book->bind_param("i", $book_id);
+                                        $stmt_book->execute();
+                                        $res_book = $stmt_book->get_result();
+                                        $book_data = $res_book->fetch_assoc();
+                                        ?>
+                                        <a href="thisbook.php?id=<?php echo $book_data['bookid']; ?>" style="color:black !important;">
                                             <div class="container-book">
                                                 <div class="bookimage_rec">
-                                                    <img src="<?php echo htmlspecialchars($data['img']); ?>" alt="bookimage_rec" style="width: 110px;">
+                                                    <img src="<?php echo htmlspecialchars($book_data['img']); ?>" alt="bookimage_rec" style="width: 110px;">
                                                 </div>
                                                 <div class="information">
-                                                    <h4><?php echo htmlentities($data['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
-                                                    <p>Жанр: <?php echo htmlentities($data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                                    <p>Автор: <?php echo htmlentities($data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
-                                                    <p>Рейтинг: <?php echo htmlentities($data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <h4><?php echo htmlentities($book_data['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
+                                                    <p>Жанр: <?php echo htmlentities($book_data['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Автор: <?php echo htmlentities($book_data['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Рейтинг: <?php echo htmlentities($book_data['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
                                                 </div>
                                             </div>
                                         </a>
-                                    <?php }
-                                } else {
-                                    ?>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
                                     <p class="msg_null">Нет рекомендаций доступных в данный момент.</p>
-                                <?php } ?>
+                                <?php endif; ?>
                             </div>
                 </div>
             <?php endif; ?>

@@ -1,58 +1,39 @@
-# from flask import Flask, request, jsonify
-# import pandas as pd
-# from sklearn.neighbors import NearestNeighbors
-# import mysql.connector
+from flask import Flask, request, jsonify
+import pandas as pd
+from sklearn.neighbors import NearestNeighbors
+import pymysql.cursors
+from knn_model import KNNRecommender
 
-# app = Flask(__name__)
+app = Flask(__name__)
 
-# # Настройка подключения к базе данных
-# def get_db_connection():
-#     return mysql.connector.connect(
-#         host="localhost",
-#         user="your_username",
-#         password="your_password",
-#         database="your_database"
-#     )
+# Конфигурация подключения к базе данных
+db_config = {
+    'host': '127.0.0.1',
+    'port': 3306,
+    'user': 'root',
+    'password': '',
+    'database': 'digitalbook',
+    'cursorclass': pymysql.cursors.DictCursor  # Убедитесь, что вы используете DictCursor
+}
 
-# # Получение названия книги по book_id
-# def get_book_name_from_db(book_id):
-#     conn = get_db_connection()
-#     cursor = conn.cursor()
-#     cursor.execute("SELECT name FROM book WHERE id = %s", (book_id,))
-#     result = cursor.fetchone()
-#     cursor.close()
-#     conn.close()
-#     return result[0] if result else None
+# Инициализация рекомендателя
+recommender = KNNRecommender(db_config)
 
-# # Рекомендации на основе названия книги
-# def recommend(book):
-#     try:
-#         query_index = pivot_table.index.get_loc(book)
-#         distances, indices = model_knn.kneighbors(pt_matrix[query_index], n_neighbors=6)
+@app.route('/recommend', methods=['GET'])
+def recommend():
+    user_id = request.args.get('user_id', type=int)
+    n_recommendations = request.args.get('n', default=5, type=int)
 
-#         recommendations = []
-#         for i in range(1, len(distances.flatten())):
-#             recommendations.append(pivot_table.index[indices.flatten()[i]])
+    if user_id is None:
+        return jsonify({"error": "User  ID is required"}), 400
+    
+    recommender.load_data()
+    # Убедитесь, что метод train_model() действительно существует в KNNRecommender
+    recommender.train_model()
 
-#         return recommendations
+    recommendations = recommender.get_recommendations(user_id, n_recommendations)
 
-#     except KeyError:
-#         return find_similar_books(book)
+    return jsonify({"recommendations": recommendations})
 
-# # Поиск похожих книг
-# def find_similar_books(book):
-#     similar_books = [b for b in pivot_table.index if book.lower() in b.lower()]
-#     return similar_books[:10] if similar_books else []
-
-# @app.route('/recommend/<int:book_id>', methods=['GET'])
-# def get_recommendations(book_id):
-#     book_name = get_book_name_from_db(book_id)
-
-#     if book_name:
-#         recommendations = recommend(book_name)
-#         return jsonify(recommendations)
-#     else:
-#         return jsonify({"error": "Книга не найдена."}), 404
-
-# if __name__ == "__main__":
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)

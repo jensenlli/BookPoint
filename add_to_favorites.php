@@ -10,11 +10,12 @@ if (isset($_SESSION['user']['id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bookId = (int)$_POST['book_id']; // Получаем ID книги из формы
     $userId = $_SESSION['user']['id']; // Получаем ID пользователя из сессии
+    $rating = 0;
 
     // SQL-запрос для добавления в избранное
-    $addFavoriteQuery = "INSERT INTO favorites (user_id, book_id) VALUES (?, ?)";
+    $addFavoriteQuery = "INSERT INTO favorites (user_id, book_id, rating_user) VALUES (?, ?, ?)";
     $stmt = $conn->prepare($addFavoriteQuery);
-    $stmt->bind_param("ii", $userId, $bookId);
+    $stmt->bind_param("iii", $userId, $bookId, $rating);
 
     if ($stmt->execute()) {
         echo 'Книга добавлена в избранное.';
