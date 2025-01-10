@@ -13,12 +13,11 @@ class KNNRecommender:
         # Подключение к базе данных с использованием контекстного менеджера
         try:
             with pymysql.connect(**self.db_config) as connection:
-                query = "SELECT user_id, book_id, rating_user FROM favorites"
+                query = "SELECT user_id, book_id, rating_user FROM ratings"
                 
                 # Используем курсор для выполнения запроса
                 with connection.cursor() as cursor:
                     cursor.execute(query)
-                    # Получаем все строки результата
                     results = cursor.fetchall()  # Получаем все результаты запроса
 
 
@@ -69,6 +68,38 @@ class KNNRecommender:
         except Exception as e:
             print(f"Произошла ошибка при обучении модели: {e}")
 
+    def calculate_metrics(self, user_id, recommended_books):
+        # Получаем фактические оценки пользователя из базы данных
+        try:
+            with pymysql.connect(**self.db_config) as connection:
+                query = f"SELECT book_id, rating_user FROM ratings WHERE user_id = {user_id} AND rating_user > 0"
+                with connection.cursor() as cursor:
+                    cursor.execute(query)
+                    actual_ratings = cursor.fetchall()
+        except Exception as e:
+            print(f"Ошибка при получении фактических оценок: {e}")
+            return None
+
+        # Преобразуем фактические оценки в множество
+        actual_positive_books = set(book['book_id'] for book in actual_ratings)
+
+        # Определяем TP, FP и FN
+        TP = len([book for book in recommended_books if book in actual_positive_books])
+        FP = len([book for book in recommended_books if book not in actual_positive_books])
+        FN = len([book for book in actual_positive_books if book not in recommended_books])
+
+        # Расчет метрик
+        precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+        recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+
+        return {
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1_score
+        }
+
+
     def get_recommendations(self, user_id, n):
         # Логика получения рекомендаций на основе user_id
         if self.model is None:
@@ -97,6 +128,7 @@ class KNNRecommender:
             # Получаем книги, оцененные соседом
             neighbor_ratings = self.user_ratings[neighbor_user_id]
             for book_id, rating in neighbor_ratings.items():
+                #для метрик закомментировать эту строку 
                 if rating > 0 and book_id not in user_rated_books:  # только положительные оценки и книги, которые не оценены пользователем
                     if book_id not in book_scores:
                         book_scores[book_id] = []
@@ -109,4 +141,12 @@ class KNNRecommender:
         recommended_books = sorted(average_scores, key=average_scores.get, reverse=True)[:n]
 
         print(f"Рекомендации для пользователя {user_id}: {recommended_books}")
+        #return recommended_books
+
+        # Рассчитываем метрики
+        metrics = self.calculate_metrics(user_id, recommended_books)
+        print(f"Метрики для пользователя {user_id}: {metrics}")
+
         return recommended_books
+
+    

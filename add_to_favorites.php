@@ -13,9 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rating = 0;
 
     // SQL-запрос для добавления в избранное
-    $addFavoriteQuery = "INSERT INTO favorites (user_id, book_id, rating_user) VALUES (?, ?, ?)";
+    $addFavoriteQuery = "INSERT INTO favorites (user_id, book_id) VALUES (?, ?)";
     $stmt = $conn->prepare($addFavoriteQuery);
-    $stmt->bind_param("iii", $userId, $bookId, $rating);
+    $stmt->bind_param("ii", $userId, $bookId);
 
     if ($stmt->execute()) {
         echo 'Книга добавлена в избранное.';

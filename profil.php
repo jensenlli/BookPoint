@@ -36,6 +36,8 @@
                 <h1 class="zag">Email</h1>
                 <p class="zag2"><?=$_SESSION['user']['email']?></p>
                 <ol> </ol>
+                <a class="w-80 btn btn-lg btn-primary" type="submit"  href="user_rating_list.php">Все оцененные книги</a>
+                <ol> </ol>
                 <ol> </ol>
                 <a class="w-80 btn btn-lg btn-primary" type="submit"  href="red_profile.php">Редактировать профиль</a>
                 <ol> </ol>

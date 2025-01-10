@@ -11,7 +11,7 @@ if (isset($_POST['book_id'], $_POST['rating'])) {
     // Проверяем, что рейтинг в диапазоне от 1 до 10
     if ($rating >= 1 && $rating <= 10) {
         // Проверка, существует ли запись для данного user_id и book_id
-        $sqlCheck = "SELECT * FROM favorites WHERE book_id = ? AND user_id = ?";
+        $sqlCheck = "SELECT * FROM ratings WHERE book_id = ? AND user_id = ?";
         $stmtCheck = $conn->prepare($sqlCheck);
         $stmtCheck->bind_param("ii", $book_id, $user_id);
         $stmtCheck->execute();
@@ -19,7 +19,7 @@ if (isset($_POST['book_id'], $_POST['rating'])) {
 
         if ($resultCheck->num_rows > 0) {
             // Запись существует, обновляем рейтинг
-            $sqlUpdate = "UPDATE favorites SET rating_user = ? WHERE book_id = ? AND user_id = ?";
+            $sqlUpdate = "UPDATE ratings SET rating_user = ? WHERE book_id = ? AND user_id = ?";
             $stmtUpdate = $conn->prepare($sqlUpdate);
             $stmtUpdate->bind_param("iii", $rating, $book_id, $user_id);
             if ($stmtUpdate->execute()) {
@@ -29,7 +29,7 @@ if (isset($_POST['book_id'], $_POST['rating'])) {
             }
         } else {
             // Запись не существует, вставляем новую
-            $sqlInsert = "INSERT INTO favorites (book_id, user_id, rating_user) VALUES (?, ?, ?)";
+            $sqlInsert = "INSERT INTO ratings (book_id, user_id, rating_user) VALUES (?, ?, ?)";
             $stmtInsert = $conn->prepare($sqlInsert);
             $stmtInsert->bind_param("iii", $book_id, $user_id, $rating);
             if ($stmtInsert->execute()) {
@@ -44,6 +44,5 @@ if (isset($_POST['book_id'], $_POST['rating'])) {
 } else {
     echo "Необходимые данные не переданы.";
 }
-
 $conn->close();
 ?>

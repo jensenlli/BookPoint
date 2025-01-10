@@ -5,29 +5,46 @@ include('config/dbConnect.php');
 $userId = $_SESSION['user']['id'];
 
 // Получение рекомендаций от Flask API
-// Проверка наличия записей в таблице favorites для данного пользователя
+// Проверка наличия записей в таблице ratings для данного пользователя
 $recommendations = [];
 if ($userId) {
-    $sql_check = "SELECT COUNT(*) AS count FROM favorites WHERE user_id = ?";
+    $sql_check = "SELECT COUNT(*) AS count FROM ratings WHERE user_id = ?";
     $stmt_check = $conn->prepare($sql_check);
     $stmt_check->bind_param("i", $userId);
     $stmt_check->execute();
     $res_check = $stmt_check->get_result();
     $row_check = $res_check->fetch_assoc();
 
-    // Если записи отсутствуют, не запрашиваем рекомендации
     if ($row_check['count'] > 0) {
         // Получение рекомендаций от Flask API
         $url = "http://127.0.0.1:5000/recommend?user_id=" . $userId . "&n=5"; // Измените на ваш IP, если нужно
-        $response = file_get_contents($url);
+        $response = @file_get_contents($url);
         $data = json_decode($response, true);
         
         if (isset($data['recommendations'])) {
             $recommendations = $data['recommendations'];
         }
     } else {
-        // Если нет записей в favorites, оставляем рекомендации пустыми
+        // Если нет записей в ratings, оставляем рекомендации пустыми
         $recommendations = [];
+    }
+}
+// Получение топ 3 книги по рейтингу
+$topBooks = [];
+$sql_top_books = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, ROUND(b.rating, 2) AS rating_2 
+                  FROM book b 
+                  LEFT JOIN author a ON b.authorId = a.id 
+                  LEFT JOIN genre g ON b.genreId = g.id 
+                  WHERE b.flag = 1 
+                  ORDER BY b.rating DESC 
+                  LIMIT 3";
+$stmt_top_books = $conn->prepare($sql_top_books);
+$stmt_top_books->execute();
+$res_top_books = $stmt_top_books->get_result();
+
+if ($res_top_books->num_rows > 0) {
+    while ($topBook = $res_top_books->fetch_assoc()) {
+        $topBooks[] = $topBook;
     }
 }
 ?>
@@ -88,7 +105,21 @@ if ($userId) {
                                         </a>
                                     <?php endforeach; ?>
                                 <?php else: ?>
-                                    <p class="msg_null">Нет рекомендаций доступных в данный момент.</p>
+                                    <?php foreach ($topBooks as $topBook): ?>
+                                        <a href="thisbook.php?id=<?php echo $topBook['bookid']; ?>" style="color:black !important;">
+                                            <div class="container-book">
+                                                <div class="bookimage_rec">
+                                                    <img src="<?php echo htmlspecialchars($topBook['img']); ?>" alt="topbookimage" style="width: 110px;">
+                                                </div>
+                                                <div class="information">
+                                                    <h4><?php echo htmlentities($topBook['bookname'], ENT_QUOTES, 'UTF-8'); ?></h4>
+                                                    <p>Жанр: <?php echo htmlentities($topBook['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Автор: <?php echo htmlentities($topBook['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                    <p>Рейтинг: <?php echo htmlentities($topBook['rating_2'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
                                 <?php endif; ?>
                             </div>
                 </div>

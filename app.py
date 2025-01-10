@@ -13,7 +13,7 @@ db_config = {
     'user': 'root',
     'password': '',
     'database': 'digitalbook',
-    'cursorclass': pymysql.cursors.DictCursor  # Убедитесь, что вы используете DictCursor
+    'cursorclass': pymysql.cursors.DictCursor  
 }
 
 # Инициализация рекомендателя
@@ -28,7 +28,6 @@ def recommend():
         return jsonify({"error": "User  ID is required"}), 400
     
     recommender.load_data()
-    # Убедитесь, что метод train_model() действительно существует в KNNRecommender
     recommender.train_model()
 
     recommendations = recommender.get_recommendations(user_id, n_recommendations)
