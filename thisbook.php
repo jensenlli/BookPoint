@@ -174,8 +174,8 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
             const submitRatingButton = document.getElementById('submitRating');
             let selectedRating = null;
 
-            // Открыть модальное окно, если пользователь на 15-й странице
-            if (<?php echo $page; ?> === 15) {
+            // Открыть модальное окно, если пользователь на 15-й странице или на последней странице
+            if (<?php echo $page; ?> === 15 || <?php echo $page; ?> === <?php echo $total_pages; ?>) {
                 ratingModal.style.display = "block";
             }
 
