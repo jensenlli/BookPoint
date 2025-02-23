@@ -457,3 +457,11 @@ p {
     padding: 15px 20px;
     outline: none;
 }
+
+.hidden {
+    display: none; /* Скрывает элемент */
+}
+
+.visible {
+    display: block; /* Показывает элемент */
+}

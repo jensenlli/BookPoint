@@ -135,7 +135,10 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
     <!-- Модальное окно для оценки книги -->
     <div id="ratingModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:1000;">
         <div class="modal-content" style="background-color:white; margin:15% auto; padding:20px; border-radius:5px; width:600px; text-align:center;">
-            <span class="close">&times;</span>
+        <span class="close" onclick="document.getElementById('ratingModal').style.display='none'">&times;</span>
+            <h1 id="modalText" class="hidden">Вы очень близко к окончанию истории...<br>
+                Осталась всего одна страница ♡</h1>
+            <br></br>
             <h1>Оцените книгу</h1>
             <div id="ratingButtons">
                 <?php for ($i = 1; $i <= 10; $i++): ?>
@@ -172,11 +175,24 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
             const closeError = document.getElementsByClassName('close-error')[0];
             const ratingButtons = document.querySelectorAll('.rating-button');
             const submitRatingButton = document.getElementById('submitRating');
+            const modalText = document.getElementById('modalText');
             let selectedRating = null;
 
-            // Открыть модальное окно, если пользователь на 15-й странице или на последней странице
-            if (<?php echo $page; ?> === 15 || <?php echo $page; ?> === <?php echo $total_pages; ?>) {
+            // Открыть модальное окно на 15-й странице или на последней странице
+            const currentPage = <?php echo $page; ?>;
+            const totalPages = <?php echo $total_pages; ?>;
+
+            if (currentPage === 15 || currentPage === totalPages) {
                 ratingModal.style.display = "block";
+
+                // Показать текст, если это последняя страница
+                if (currentPage === totalPages) {
+                    modalText.classList.remove('hidden'); // Убираем класс hidden
+                    modalText.classList.add('visible'); // Добавляем класс visible
+                } else {
+                    modalText.classList.remove('visible'); // Убираем класс visible
+                    modalText.classList.add('hidden'); // Добавляем класс hidden
+                }
             }
 
             // Закрыть модальное окно для рейтинга
