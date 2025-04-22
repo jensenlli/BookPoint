@@ -25,7 +25,7 @@
 <div class="wrapper">
     <?php include('header.php'); ?>
         <div class="page">
-                <img src="media/image2.jpg" class="imgreg">
+                <img src="media/image3.jpg" class="imgreg">
 
             <main class="akk_info">
                 <form>
@@ -37,6 +37,8 @@
                 <p class="zag2"><?=$_SESSION['user']['email']?></p>
                 <ol> </ol>
                 <a class="w-80 btn btn-lg btn-primary" type="submit"  href="user_rating_list.php">Все оцененные книги</a>
+                <ol> </ol>
+                <a class="w-80 btn btn-lg btn-primary" type="submit"  href="quote_list.php">Мои цитаты</a>
                 <ol> </ol>
                 <ol> </ol>
                 <a class="w-80 btn btn-lg btn-primary" type="submit"  href="red_profile.php">Редактировать профиль</a>

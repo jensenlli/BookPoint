@@ -68,7 +68,7 @@ class KNNRecommender:
         except Exception as e:
             print(f"Произошла ошибка при обучении модели: {e}")
 
-    def calculate_metrics(self, user_id, recommended_books):
+    """ def calculate_metrics(self, user_id, recommended_books):
         # Получаем фактические оценки пользователя из базы данных
         try:
             with pymysql.connect(**self.db_config) as connection:
@@ -97,8 +97,77 @@ class KNNRecommender:
             'precision': precision,
             'recall': recall,
             'f1_score': f1_score
+        } """
+    
+    def calculate_ap(self, user_id, recommended_books):
+        """Вычисляет Average Precision для одного пользователя"""
+        try:
+            with pymysql.connect(**self.db_config) as connection:
+                query = f"SELECT book_id FROM ratings WHERE user_id = {user_id} AND rating_user > 0"
+                with connection.cursor() as cursor:
+                    cursor.execute(query)
+                    actual_positive_books = set(book['book_id'] for book in cursor.fetchall())
+        except Exception as e:
+            print(f"Ошибка при получении фактических оценок: {e}")
+            return 0
+
+        ap = 0.0
+        tp = 0
+        relevant_count = len(actual_positive_books)
+        
+        if relevant_count == 0:
+            return 0
+            
+        for i, book_id in enumerate(recommended_books, 1):
+            if book_id in actual_positive_books:
+                tp += 1
+                precision_at_k = tp / i
+                ap += precision_at_k
+                
+        return ap / min(relevant_count, len(recommended_books))
+
+    def calculate_metrics(self, user_id, recommended_books):
+        # Получаем фактические оценки пользователя из базы данных
+        try:
+            with pymysql.connect(**self.db_config) as connection:
+                query = f"SELECT book_id, rating_user FROM ratings WHERE user_id = {user_id} AND rating_user > 0"
+                with connection.cursor() as cursor:
+                    cursor.execute(query)
+                    actual_ratings = cursor.fetchall()
+        except Exception as e:
+            print(f"Ошибка при получении фактических оценок: {e}")
+            return None
+
+        # Преобразуем фактические оценки в множество
+        actual_positive_books = set(book['book_id'] for book in actual_ratings)
+
+        # Определяем TP, FP и FN
+        TP = len([book for book in recommended_books if book in actual_positive_books])
+        FP = len([book for book in recommended_books if book not in actual_positive_books])
+        FN = len([book for book in actual_positive_books if book not in recommended_books])
+
+        # Расчет метрик
+        precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+        recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+        ap = self.calculate_ap(user_id, recommended_books)  # Добавляем Average Precision
+
+        return {
+            'precision': precision,
+            'recall': recall,
+            'f1_score': f1_score,
+            'average_precision': ap  # Добавляем в возвращаемый словарь
         }
 
+    def calculate_map(self, user_ids, n_recommendations=5):
+        """Вычисляет Mean Average Precision для списка пользователей"""
+        aps = []
+        for user_id in user_ids:
+            recommendations = self.get_recommendations(user_id, n_recommendations)
+            ap = self.calculate_ap(user_id, recommendations)
+            aps.append(ap)
+            
+        return np.mean(aps) if aps else 0
 
     def get_recommendations(self, user_id, n):
         # Логика получения рекомендаций на основе user_id
@@ -147,6 +216,7 @@ class KNNRecommender:
         metrics = self.calculate_metrics(user_id, recommended_books)
         print(f"Метрики для пользователя {user_id}: {metrics}")
 
-        return recommended_books
+        return recommended_books 
+        
 
     

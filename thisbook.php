@@ -3,14 +3,84 @@ session_start();
 include('config/dbConnect.php');
 $userId = $_SESSION['user']['id'];
 
-// Проверяем, что ID книги передан
 if (!isset($_GET['id'])) {
     header("Location: index.php");
     exit;
 }
 
-// Получаем ID книги из GET-параметров
 $id = intval($_GET['id']);
+
+// Проверяем есть ли закладка для этого пользователя
+$bookmark_page = null;
+if ($userId) {
+    $sql = "SELECT page FROM bookmarks WHERE user_id = ? AND book_id = ? AND quote_text IS NULL  ORDER BY created_at DESC LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $userId, $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $bookmark_page = $result->fetch_assoc()['page'];
+    }
+}
+
+// Определяем текущую страницу
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+
+// Если есть закладка И это первое открытие книги (нет явного page в URL)
+if ($bookmark_page && !isset($_GET['page'])) {
+    // Перенаправляем только если пользователь не указал конкретную страницу
+    header("Location: thisbook.php?id=$id&page=$bookmark_page");
+    exit;
+}
+
+// Функция для разбиения текста на страницы без разрыва слов
+function paginateText($text, $chars_per_page, $page) {
+    $words = explode(' ', $text);
+    $current_length = 0;
+    $pages = [];
+    $current_page = [];
+    
+    foreach ($words as $word) {
+        $word_length = strlen($word) + 1; // +1 для пробела
+        
+        if ($current_length + $word_length <= $chars_per_page || empty($current_page)) {
+            $current_page[] = $word;
+            $current_length += $word_length;
+        } else {
+            $pages[] = implode(' ', $current_page);
+            $current_page = [$word];
+            $current_length = $word_length;
+        }
+    }
+    
+    if (!empty($current_page)) {
+        $pages[] = implode(' ', $current_page);
+    }
+    
+    $total_pages = count($pages);
+    $page = max(1, min($page, $total_pages));
+    
+    return [
+        'text' => $pages[$page - 1] ?? '',
+        'total_pages' => $total_pages,
+        'current_page' => $page
+    ];
+}
+
+// Получаем сохраненные цитаты для этой страницы
+$quotes = [];
+if ($userId) {
+    $sql = "SELECT quote_text FROM bookmarks WHERE user_id = ? AND book_id = ? AND page = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iii", $userId, $id, $page);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $quotes[] = $row['quote_text'];
+    }
+}
 
 // Получаем данные книги
 $sql = "SELECT b.id AS bookid, b.name AS bookname, a.name AS authorname, g.name AS genrename, b.img, b.ISBN, ROUND(b.rating, 2) AS rating_2, b.yearPub, b.Publisher FROM book AS b
@@ -27,11 +97,17 @@ if (!$result1) {
 
 $row = $stmt->get_result()->fetch_assoc();
 
-// Проверяем, есть ли такая книга
 if (!$row) {
     echo "Книга не найдена.";
     exit;
 }
+
+// Получаем данные о количестве отзывов
+$reviewCountSql = "SELECT COUNT(*) as count FROM reviews WHERE book_id = ?";
+$reviewCountStmt = $conn->prepare($reviewCountSql);
+$reviewCountStmt->bind_param("i", $id);
+$reviewCountStmt->execute();
+$reviewCount = $reviewCountStmt->get_result()->fetch_assoc()['count'];
 
 // Получаем текст книги
 $sql = "SELECT text FROM textbook WHERE bookid = ?";
@@ -45,34 +121,18 @@ if (!$result2) {
 }
 
 $text = $stmt->get_result()->fetch_assoc()['text'];
-
-// Закрываем соединение со второй таблицей
 $stmt->close();
 $conn->close();
 
 // Параметры пагинации
-$chars_per_page = 15000; // Количество символов на страницу
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1; // Текущая страница
-$total_chars = strlen($text); // Общая длина текста
-$total_pages = ceil($total_chars / $chars_per_page); // Общее количество страниц
+$chars_per_page = 15000; // Примерное количество символов на страницу
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
 
-// Корректировка номера страницы
-if ($page < 1) {
-    $page = 1; // Устанавливаем минимум
-} elseif ($page > $total_pages) {
-    $page = $total_pages; // Устанавливаем максимум
-}
-
-// Определяем, какой текст показывать
-$offset = ($page - 1) * $chars_per_page; // Текущий начальный символ
-
-// Пропускаем переносы строк, если это необходимо
-while ($offset < $total_chars && in_array($text[$offset], ["\r", "\n", "\br"])) {
-    $offset++;
-}
-
-$page_text = substr($text, $offset, $chars_per_page); // Получаем текст для текущей страницы
-
+// Разбиваем текст на страницы
+$pagination_result = paginateText($text, $chars_per_page, $page);
+$page_text = $pagination_result['text'];
+$total_pages = $pagination_result['total_pages'];
+$page = $pagination_result['current_page'];
 ?>
 
 <!DOCTYPE html>
@@ -85,6 +145,31 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="partials/css/footer.css">
     <link rel="stylesheet" href="partials/css/header.css">
+
+    <style>
+        .bookmark-ribbon {
+            position: absolute;
+            right: 0;
+            width: 30px;
+            height: 50px;
+            color: white;
+            text-align: center;
+            line-height: 50px;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .bookmark-inactive {
+            background-color: #cccccc;
+        }
+        
+        .bookmark-active {
+            background-color: #ff0000;
+        }
+    </style>
 </head>
 
 <body>
@@ -93,6 +178,7 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
         <div class="card">
             <img src="<?php echo htmlentities($row['img'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?php echo htmlentities($row['bookname'], ENT_QUOTES, 'UTF-8'); ?>" class="card-img-top">
             <div class="card-body">
+
                 <h1 class="card-title"><?php echo htmlentities($row['bookname'], ENT_QUOTES, 'UTF-8'); ?></h1>
                 <p><strong>Автор:</strong> <?php echo htmlentities($row['authorname'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p><strong>Жанр:</strong> <?php echo htmlentities($row['genrename'], ENT_QUOTES, 'UTF-8'); ?></p>
@@ -100,18 +186,34 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
                 <p><strong>Год публикации:</strong> <?php echo htmlentities($row['yearPub'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p><strong>Издательство:</strong> <?php echo htmlentities($row['Publisher'], ENT_QUOTES, 'UTF-8'); ?></p>
                 <p><strong>IBSN:</strong> <?php echo htmlentities($row['ISBN'], ENT_QUOTES, 'UTF-8'); ?></p>
-                <br>
+                <div class="reviews-section">
+                    <a href="reviews.php?book_id=<?= $id ?>" class="inputpagesbtn"> Отзывы (<?= $reviewCount ?>)</a>
+                </div>
+                <br><br>
+                
+                <!-- Ярлык закладки -->
+                <div class="bookmark-ribbon <?php echo ($page == $bookmark_page) ? 'bookmark-active' : 'bookmark-inactive'; ?>" 
+                    id="bookmarkRibbon"
+                    title="<?php echo ($page == $bookmark_page) ? 'Закладка на этой странице' : 'Кликните чтобы поставить закладку'; ?>">
+                    ★
+                </div>
+
                 <form method="GET" action="thisbook.php">
                     <input type="hidden" name="id" value="<?php echo $id; ?>" />
                     <input type="number" class="inputpages" name="page" min="1" max="<?php echo $total_pages; ?>" placeholder="Введите номер страницы" required />
                     <button type="submit" class="inputpagesbtn">Перейти</button>
+                </form>
+
+                <form method="POST" action="save_bookmark.php">
+                    <input type="hidden" name="book_id" value="<?php echo $id; ?>">
+                    <input type="hidden" name="page" value="<?php echo $page; ?>">
                 </form>
                 <br><br>
                 <?php
                 // Проверяем, что у нас есть текст для отображения
                 if (!empty(trim($page_text))) {
                     // Заменяем переносы строк на <br> после проверки на пустоту
-                    echo nl2br(htmlspecialchars($page_text, ENT_QUOTES, 'cp1251'));
+                    echo nl2br(htmlspecialchars($page_text, ENT_QUOTES, 'UTF-8'));
                 } else {
                     echo "Текст книги пока что не доступен. Попробуйте зайти немного позднее";
                 }
@@ -122,7 +224,7 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
                         <a style="color:#CC9600; padding-bottom: 50px;" href="thisbook.php?id=<?php echo $id; ?>&page=<?php echo $page - 1; ?>">« Предыдущая</a>
                     <?php endif; ?>
 
-                    <span style="padding: 0 15px; ">Страница <?php echo $page; ?> из <?php echo $total_pages; ?></span>
+                    <span style="padding: 0 15px;">Страница <?php echo $page; ?> из <?php echo $total_pages; ?></span>
 
                     <?php if ($page < $total_pages): ?>
                         <a style="color:#CC9600; padding-bottom: 50px;" href="thisbook.php?id=<?php echo $id; ?>&page=<?php echo $page + 1; ?>">Следующая »</a>
@@ -244,6 +346,127 @@ $page_text = substr($text, $offset, $chars_per_page); // Получаем тек
             });
         });
     </script>
-</body>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bookmarkRibbon = document.getElementById('bookmarkRibbon');
+        
+        // Обработчик клика по ярлыку
+        bookmarkRibbon.addEventListener('click', function() {
+            const isActive = this.classList.contains('bookmark-active');
+            
+            fetch('save_bookmark.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `book_id=<?php echo $id; ?>&page=<?php echo $page; ?>`
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Просто обновляем стиль, без перезагрузки
+                    this.classList.toggle('bookmark-inactive');
+                    this.classList.toggle('bookmark-active');
+                    this.title = this.classList.contains('bookmark-active') 
+                        ? 'Закладка на этой странице' 
+                        : 'Кликните чтобы поставить закладку';
+                    
+                    // Анимация
+                    this.style.transform = 'scale(1.2)';
+                    setTimeout(() => this.style.transform = 'scale(1)', 300);
+                }
+            });
+        });
+
+        // Автопрокрутка только если это страница с закладкой И нет явного page в URL
+        <?php if ($page == $bookmark_page && !isset($_GET['page'])): ?>
+            setTimeout(() => {
+                window.scrollTo({
+                    top: document.querySelector('.card-body').offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            }, 300);
+        <?php endif; ?>
+    });
+</script>
+
+<!-- ДОБАВЛЯЕМ МОДАЛЬНОЕ ОКНО ДЛЯ ЦИТАТ -->
+<div id="quoteModal">
+        <button onclick="saveHighlight()">Выделить цитату</button>
+    </div>
+
+    <script>
+        // ДОБАВЛЯЕМ ОБРАБОТЧИК ВЫДЕЛЕНИЯ ТЕКСТА
+        let currentSelection = null;
+
+        document.addEventListener('mouseup', function(e) {
+            const selection = window.getSelection();
+            if (!selection.isCollapsed && e.button === 0) {
+                const range = selection.getRangeAt(0);
+                const rect = range.getBoundingClientRect();
+                
+                // Показываем кнопку рядом с выделением
+                const modal = document.getElementById('quoteModal');
+                modal.style.display = 'block';
+                modal.style.top = `${rect.top + window.scrollY - 40}px`;
+                modal.style.left = `${rect.left + window.scrollX}px`;
+                
+                currentSelection = range;
+            }
+        });
+
+        // Функция сохранения выделения
+        function saveHighlight() {
+            const modal = document.getElementById('quoteModal');
+            if (!currentSelection) return;
+
+            const selectedText = currentSelection.toString().trim();
+            if (selectedText.length === 0) return;
+
+            // Добавляем визуальное выделение
+            const span = document.createElement('span');
+            span.className = 'highlight';
+            span.textContent = selectedText;
+            currentSelection.deleteContents();
+            currentSelection.insertNode(span);
+
+            // Сохраняем в базу данных
+            fetch('save_quote.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `book_id=<?php echo $id; ?>&page=<?php echo $page; ?>&quote_text=${encodeURIComponent(selectedText)}`
+            })
+            .then(response => {
+                if (response.ok) {
+                    modal.style.display = 'none';
+                    span.style.background = 'rgba(255,215,0,0.3)'; // Фиксируем цвет
+                }
+            });
+
+            currentSelection = null;
+        }
+
+        // Восстанавливаем сохраненные выделения при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php foreach ($quotes as $quote): ?>
+                const textContent = document.body.textContent;
+                const startIndex = textContent.indexOf('<?php echo addslashes($quote); ?>');
+                
+                if (startIndex !== -1) {
+                    const range = document.createRange();
+                    const textNode = document.body.childNodes[0];
+                    range.setStart(textNode, startIndex);
+                    range.setEnd(textNode, startIndex + <?php echo mb_strlen($quote); ?>);
+                    
+                    const span = document.createElement('span');
+                    span.className = 'highlight';
+                    range.surroundContents(span);
+                }
+            <?php endforeach; ?>
+        });
+    </script>
+
+</body>
 </html>

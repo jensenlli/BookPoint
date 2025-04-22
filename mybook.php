@@ -71,7 +71,8 @@ if ($res_top_books->num_rows > 0) {
                 <div class="filter" id="filter">
                     <ul>
                         <li style="padding-left: 20px;">Рекомендации специально для</li>
-                        <li style="padding-left: 20px; color: #CC9600;position: absolute;left: 70px;top: 156px;">Вас</li>
+                        <br>
+                        <li style="padding-left: 20px; color: #CC9600;position: absolute;top: 156px;left: 50px;">Вас</li>
                         <ul>
 
                             <div class="recommended-books">
