@@ -9,29 +9,48 @@ if (!isset($_SESSION['user'])) {
 $userId = $_SESSION['user']['id'];
 $bookId = intval($_POST['book_id']);
 $page = intval($_POST['page']);
+$readingTime = isset($_POST['reading_time']) ? intval($_POST['reading_time']) : 0;
 
-// Удаляем предыдущие закладки (только где нет цитат)
-$deleteSql = "DELETE FROM bookmarks 
-              WHERE user_id = ? 
-                AND book_id = ? 
-                AND quote_text IS NULL";
-$deleteStmt = $conn->prepare($deleteSql);
-$deleteStmt->bind_param("ii", $userId, $bookId);
-$deleteStmt->execute();
+try {
+    // Используем UPSERT (INSERT + UPDATE)
+    $sql = "INSERT INTO bookmarks 
+            (user_id, book_id, page, reading_time, created_at) 
+            VALUES (?, ?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE 
+                page = VALUES(page),
+                reading_time = reading_time + VALUES(reading_time),
+                updated_at = NOW()";
 
-// Вставляем новую закладку
-$insertSql = "INSERT INTO bookmarks (user_id, book_id, page, created_at)
-              VALUES (?, ?, ?, NOW())";
-$insertStmt = $conn->prepare($insertSql);
-$insertStmt->bind_param("iii", $userId, $bookId, $page);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iiii", $userId, $bookId, $page, $readingTime);
+    
+    if (!$stmt->execute()) {
+        throw new Exception("Ошибка сохранения: " . $stmt->error);
+    }
 
-if ($insertStmt->execute()) {
-    echo json_encode(['status' => 'success']);
-} else {
-    echo json_encode(['status' => 'error', 'message' => $conn->error]);
+    echo json_encode([
+        'status' => 'success',
+        'total_time' => getTotalReadingTime($conn, $userId, $bookId)
+    ]);
+
+} catch (Exception $e) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => $e->getMessage()
+    ]);
 }
 
-$deleteStmt->close();
-$insertStmt->close();
+// Функция для получения общего времени чтения книги
+function getTotalReadingTime($conn, $userId, $bookId) {
+    $sql = "SELECT SUM(reading_time) as total 
+            FROM bookmarks 
+            WHERE user_id = ? AND book_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $userId, $bookId);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    return $result['total'] ?? 0;
+}
+
 $conn->close();
 ?>

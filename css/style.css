@@ -485,3 +485,48 @@ p {
     z-index: 1000;
     display: none;
 }
+
+.bookmark-ribbon {
+    position: absolute;
+    right: 0;
+    width: 30px;
+    height: 50px;
+    color: white;
+    text-align: center;
+    line-height: 50px;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.bookmark-inactive {
+    background-color: #cccccc;
+}
+
+.bookmark-active {
+    background-color: #ff0000;
+}
+
+.timer-container {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+#stopTimerButton {
+
+    margin-top: 10px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 3px;
+    cursor: pointer;
+}

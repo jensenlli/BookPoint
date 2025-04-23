@@ -10,6 +10,24 @@ if (!isset($_GET['id'])) {
 
 $id = intval($_GET['id']);
 
+// ТАЙМЕР
+function getCurrentReadingTime($userId, $bookId) {
+    include('config/dbConnect.php');
+    $sql = "SELECT total_seconds 
+            FROM reading_sessions 
+            WHERE user_id = ? 
+              AND book_id = ? 
+              AND is_completed = FALSE 
+            ORDER BY start_time DESC 
+            LIMIT 1";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $userId, $bookId);
+    $stmt->execute();
+    $result = $stmt->get_result()->fetch_assoc();
+    return $result['total_seconds'] ?? 0;
+}
+
+
 // Проверяем есть ли закладка для этого пользователя
 $bookmark_page = null;
 if ($userId) {
@@ -145,31 +163,6 @@ $page = $pagination_result['current_page'];
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="partials/css/footer.css">
     <link rel="stylesheet" href="partials/css/header.css">
-
-    <style>
-        .bookmark-ribbon {
-            position: absolute;
-            right: 0;
-            width: 30px;
-            height: 50px;
-            color: white;
-            text-align: center;
-            line-height: 50px;
-            font-weight: bold;
-            box-shadow: 0 0 5px rgba(0,0,0,0.3);
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .bookmark-inactive {
-            background-color: #cccccc;
-        }
-        
-        .bookmark-active {
-            background-color: #ff0000;
-        }
-    </style>
 </head>
 
 <body>
@@ -190,6 +183,14 @@ $page = $pagination_result['current_page'];
                     <a href="reviews.php?book_id=<?= $id ?>" class="inputpagesbtn"> Отзывы (<?= $reviewCount ?>)</a>
                 </div>
                 <br><br>
+                
+                 <!-- Таймер -->
+                <div class="timer-container">
+                    <div>Время чтения: <span id="readingTimer">00:00:00</span></div>
+                    <?php if ($page == $total_pages): ?>
+                        <button id="stopTimerButton" onclick="stopTimerPermanently()">Завершить чтение</button>
+                    <?php endif; ?>
+                </div>
                 
                 <!-- Ярлык закладки -->
                 <div class="bookmark-ribbon <?php echo ($page == $bookmark_page) ? 'bookmark-active' : 'bookmark-inactive'; ?>" 
@@ -467,6 +468,121 @@ $page = $pagination_result['current_page'];
             <?php endforeach; ?>
         });
     </script>
+
+<script>
+class ActiveReadingTimer {
+    constructor(bookId) {
+        this.bookId = bookId;
+        this.startTime = 0;
+        this.totalSeconds = 0;
+        this.timerInterval = null;
+        this.isActive = false;
+    }
+
+    async start() {
+        if (this.isActive) return;
+        
+        try {
+            // Уведомляем сервер о начале чтения
+            await fetch('start_reading.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `book_id=${this.bookId}`
+            });
+            
+            // Загружаем общее время
+            const response = await fetch(`get_reading_time.php?book_id=${this.bookId}`);
+            const data = await response.json();
+            this.totalSeconds = data.total_seconds;
+            
+            // Запускаем таймер
+            this.startTime = Date.now();
+            this.isActive = true;
+            this.timerInterval = setInterval(() => this.update(), 1000);
+            
+        } catch (error) {
+            console.error('Ошибка старта таймера:', error);
+        }
+    }
+
+    async stop() {
+        if (!this.isActive) return;
+        
+        clearInterval(this.timerInterval);
+        this.isActive = false;
+        
+        try {
+            // Уведомляем сервер об остановке
+            await fetch('stop_reading.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `book_id=${this.bookId}`
+            });
+        } catch (error) {
+            console.error('Ошибка остановки таймера:', error);
+        }
+    }
+
+    update() {
+        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+        const displaySeconds = this.totalSeconds + elapsed;
+        this.updateDisplay(displaySeconds);
+    }
+
+    updateDisplay(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        
+        document.getElementById('readingTimer').textContent = 
+            `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    window.readingTimer = new ActiveReadingTimer(<?= $id ?>);
+    readingTimer.start();
+});
+
+// Остановка при закрытии страницы
+window.addEventListener('beforeunload', () => {
+    if (window.readingTimer) {
+        readingTimer.stop();
+        
+        // Синхронный запрос для гарантированной остановки
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'stop_reading.php', false);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send(`book_id=${<?= $id ?>}`);
+    }
+});
+
+// Для кнопки завершения чтения (если есть)
+const stopBtn = document.getElementById('stopTimerButton');
+if (stopBtn) {
+    stopBtn.addEventListener('click', async () => {
+        await readingTimer.stop();
+        
+        // Дополнительные действия при завершении чтения
+        try {
+            await fetch('complete_reading.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `book_id=${<?= $id ?>}`
+            });
+        } catch (error) {
+            console.error('Ошибка завершения чтения:', error);
+        }
+    });
+}
+</script>
 
 </body>
 </html>
